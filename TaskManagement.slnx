@@ -1,0 +1,17 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".gitignore" />
+    <File Path="Directory.Build.props" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="TaskManagement.Application/TaskManagement.Application.csproj" />
+    <Project Path="TaskManagement.Domain/TaskManagement.Domain.csproj" />
+    <Project Path="TaskManagement.Infrastructure/TaskManagement.Infrastructure.csproj" />
+    <Project Path="TaskManagement/TaskManagement.API.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="TaskManagement.API.Tests/TaskManagement.API.Tests.csproj" />
+    <Project Path="TaskManagement.Application.Tests/TaskManagement.Application.Tests.csproj" />
+    <Project Path="TaskManagement.Infrastructure.Tests/TaskManagement.Infrastructure.Tests.csproj" />
+  </Folder>
+</Solution>
