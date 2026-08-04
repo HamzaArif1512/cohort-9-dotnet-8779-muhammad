@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace TaskManagement.Application.DTOs.UserDtos;
 
-internal class RegisterUserDto
+internal class AuthResponseDto
 {
 }

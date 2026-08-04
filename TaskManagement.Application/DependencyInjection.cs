@@ -1,4 +1,7 @@
+using AutoMapper;
+using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
+using TaskManagement.Application.Mapping;
 
 namespace TaskManagement.Application;
 
@@ -6,9 +9,10 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
-        
-        // Register application services here
-        // e.g., services.AddScoped<IMyService, MyService>();
+        services.AddAutoMapper(typeof(MappingProfile));
+
+        services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
+
         return services;
     }
 }

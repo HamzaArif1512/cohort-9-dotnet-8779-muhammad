@@ -76,4 +76,10 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
 
         _dbSet.RemoveRange(entities);
     }
+
+    public async Task<int> SaveChangesAsync(
+    CancellationToken cancellationToken = default)
+    {
+        return await _context.SaveChangesAsync(cancellationToken);
+    }
 }
