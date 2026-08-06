@@ -9,7 +9,7 @@ using TaskManagement.Domain.Entities;
 
 namespace TaskManagement.Application.Services;
 
-internal class TaskService : ITaskService
+public class TaskService : ITaskService
 {
     private readonly IMapper _mapper;
     private readonly ITaskRepository _taskRepository;
