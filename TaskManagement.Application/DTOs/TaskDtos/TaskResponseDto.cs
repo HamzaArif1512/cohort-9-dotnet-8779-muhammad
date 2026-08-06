@@ -15,5 +15,5 @@ public class TaskResponseDto
     public string Priority { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty;
     public string CategoryName { get; set; } = string.Empty;
-    public string AsigneeName { get; set; } = string.Empty;
+    public string AssigneeName { get; set; } = string.Empty;
 }

@@ -12,6 +12,6 @@ public class CreateTaskDto
     public DateTime DueDate { get; set; }
     public string Priority { get; set; } = string.Empty;
     public int CategoryId { get; set; }
-    public int AsigneeId { get; set; }
+    public int AssigneeId { get; set; }
 
 }

@@ -13,5 +13,5 @@ public class UpdateTaskDto
     public string Priority { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty;
     public int CategoryId { get; set; }
-    public int AsigneeId { get; set; }
+    public int AssigneeId { get; set; }
 }
