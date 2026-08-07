@@ -3,6 +3,9 @@ using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using TaskManagement.Application.Mapping;
 using TaskManagement.Application.Validators.TaskValidators;
+using TaskManagement.Application.Interfaces.Services;
+using TaskManagement.Application.Services;
+
 
 namespace TaskManagement.Application;
 
@@ -15,6 +18,8 @@ public static class DependencyInjection
         services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
 
         services.AddValidatorsFromAssemblyContaining<CreateTaskDtoValidator>();
+
+        services.AddScoped<ITaskService, TaskService>();
 
         return services;
     }

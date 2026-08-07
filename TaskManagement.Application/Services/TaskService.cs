@@ -43,15 +43,16 @@ public class TaskService : ITaskService
         return _mapper.Map<IEnumerable<TaskResponseDto>>(tasks);
     }
 
+
     //Retrieve task by id
-    public async Task<IEnumerable<TaskResponseDto>> GetTaskByIdAsync(int id)
+    public async Task<TaskResponseDto?> GetTaskByIdAsync(int id)
     {
         var task = await _taskRepository.GetByIdAsync(id);
         if (task == null)
         {
             return null;
         }
-        return _mapper.Map<IEnumerable<TaskResponseDto>>(task);
+        return _mapper.Map<TaskResponseDto>(task);
     }
 
     //Update task

@@ -8,7 +8,7 @@ public interface ITaskService
 
     public Task<IEnumerable<TaskResponseDto>> GetAllTasksAsync();
 
-    public Task<IEnumerable<TaskResponseDto>> GetTaskByIdAsync(int id);
+    public Task<TaskResponseDto?> GetTaskByIdAsync(int id);
     public Task<TaskResponseDto?> UpdateTaskAsync(int id, UpdateTaskDto dto);
     public Task<bool> DeleteTaskAsync(int id);
 }
