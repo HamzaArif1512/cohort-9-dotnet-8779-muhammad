@@ -12,9 +12,15 @@ public class MappingProfile : Profile
     public MappingProfile()
     {
 
-        CreateMap<CreateTaskDto, TaskItem>();
+        CreateMap<CreateTaskDto, TaskItem>()
+            .ForMember(
+                dest => dest.UserId,
+                opt => opt.MapFrom(src => src.AssigneeId));
 
-        CreateMap<UpdateTaskDto, TaskItem>();
+        CreateMap<UpdateTaskDto, TaskItem>()
+            .ForMember(
+                dest => dest.UserId,
+                opt => opt.MapFrom(src => src.AssigneeId));
 
         CreateMap<TaskItem, TaskResponseDto>();
 

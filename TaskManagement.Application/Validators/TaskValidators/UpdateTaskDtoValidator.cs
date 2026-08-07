@@ -24,7 +24,7 @@ public class UpdateTaskDtoValidator : AbstractValidator<UpdateTaskDto>
             .GreaterThan(0);
 
         RuleFor(x => x.AssigneeId)
-            .GreaterThan(0);
+            .NotEmpty();
 
         RuleFor(x => x.DueDate)
             .GreaterThan(DateTime.UtcNow);

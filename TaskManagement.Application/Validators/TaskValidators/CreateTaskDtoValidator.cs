@@ -1,5 +1,7 @@
 using FluentValidation;
 using TaskManagement.Application.DTOs.TaskDtos;
+using TaskManagement.Domain.Enums;
+
 
 namespace TaskManagement.Application.Validators.TaskValidators;
 
@@ -18,7 +20,8 @@ public class CreateTaskDtoValidator : AbstractValidator<CreateTaskDto>
             .WithMessage("Description cannot exceed 1000 characters.");
 
         RuleFor(x => x.Priority)
-            .IsInEnum()
+            .NotEmpty()
+            .IsEnumName(typeof(TaskPriority))
             .WithMessage("Invalid priority.");
 
         RuleFor(x => x.CategoryId)
@@ -26,8 +29,8 @@ public class CreateTaskDtoValidator : AbstractValidator<CreateTaskDto>
             .WithMessage("A valid category must be selected.");
 
         RuleFor(x => x.AssigneeId)
-            .GreaterThan(0)
-            .WithMessage("A valid assignee must be selected.");
+            .NotEmpty()
+            .WithMessage("Assignee is required.");
 
         RuleFor(x => x.DueDate)
             .GreaterThan(DateTime.UtcNow)
