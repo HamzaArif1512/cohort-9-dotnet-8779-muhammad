@@ -16,7 +16,9 @@ public class UpdateTaskDtoValidator : AbstractValidator<UpdateTaskDto>
             .MaximumLength(1000);
 
         RuleFor(x => x.Priority)
-            .IsInEnum();
+            .NotEmpty()
+            .IsEnumName(typeof(TaskPriority))
+            .WithMessage("Invalid priority.");
 
         RuleFor(x => x.Status)
             .NotEmpty()
