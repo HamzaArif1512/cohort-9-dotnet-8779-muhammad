@@ -23,32 +23,32 @@ public class ApplicationDbContext : DbContext
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
 
         modelBuilder.Entity<Category>().HasData(
-       new Category
-       {
-           Id = 1,
-           Name = "Development"
-       },
-       new Category
-       {
-           Id = 2,
-           Name = "Testing"
-       },
-       new Category
-       {
-           Id = 3,
-           Name = "Documentation"
-       },
-       new Category
-       {
-           Id = 4,
-           Name = "Bug Fix"
-       },
-       new Category
-       {
-           Id = 5,
-           Name = "Research"
-       }
-   );
+    new
+    {
+        Id = 1,
+        Name = "Development"
+    },
+    new
+    {
+        Id = 2,
+        Name = "Testing"
+    },
+    new
+    {
+        Id = 3,
+        Name = "Documentation"
+    },
+    new
+    {
+        Id = 4,
+        Name = "Bug Fix"
+    },
+    new
+    {
+        Id = 5,
+        Name = "Research"
+    }
+);
 
     }
 }

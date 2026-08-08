@@ -4,7 +4,7 @@ namespace TaskManagement.Application.Interfaces.Repositories;
 
 public interface IGenericRepository<T> where T : class
 {
-    public Task<T?> GetByIdAsync(int id);
+    public Task<T?> GetByIdAsync(Guid id);
    public Task<IEnumerable<T>> GetAllAsync();
     public Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate);
     public Task AddAsync(T entity);

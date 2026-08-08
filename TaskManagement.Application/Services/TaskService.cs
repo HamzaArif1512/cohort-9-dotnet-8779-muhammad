@@ -45,7 +45,7 @@ public class TaskService : ITaskService
 
 
     //Retrieve task by id
-    public async Task<TaskResponseDto?> GetTaskByIdAsync(int id)
+    public async Task<TaskResponseDto?> GetTaskByIdAsync(Guid id)
     {
         var task = await _taskRepository.GetByIdAsync(id);
         if (task == null)
@@ -56,7 +56,7 @@ public class TaskService : ITaskService
     }
 
     //Update task
-    public async Task<TaskResponseDto?> UpdateTaskAsync(int id, UpdateTaskDto dto)
+    public async Task<TaskResponseDto?> UpdateTaskAsync(Guid id, UpdateTaskDto dto)
     {
         var task = await _taskRepository.GetByIdAsync(id);
         if (task == null)
@@ -70,7 +70,7 @@ public class TaskService : ITaskService
     }
 
     //Delete task
-    public async Task<bool> DeleteTaskAsync(int id)
+    public async Task<bool> DeleteTaskAsync(Guid id)
     {
         var task = await _taskRepository.GetByIdAsync(id);
         if (task == null)

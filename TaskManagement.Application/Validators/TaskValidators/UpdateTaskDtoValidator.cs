@@ -1,5 +1,6 @@
 using FluentValidation;
 using TaskManagement.Application.DTOs.TaskDtos;
+using TaskManagement.Domain.Enums;
 
 namespace TaskManagement.Application.Validators.TaskValidators;
 
@@ -18,7 +19,9 @@ public class UpdateTaskDtoValidator : AbstractValidator<UpdateTaskDto>
             .IsInEnum();
 
         RuleFor(x => x.Status)
-            .IsInEnum();
+            .NotEmpty()
+            .IsEnumName(typeof(TaskItemStatus))
+            .WithMessage("Invalid status.");
 
         RuleFor(x => x.CategoryId)
             .GreaterThan(0);

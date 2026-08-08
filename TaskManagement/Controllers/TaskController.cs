@@ -39,7 +39,7 @@ public class TaskController : ControllerBase
     [HttpGet("{id}")]
     [ProducesResponseType(typeof(TaskResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetTaskById(int id)
+    public async Task<IActionResult> GetTaskById(Guid id)
     {
         var task = await _taskService.GetTaskByIdAsync(id);
         if (task == null)
@@ -54,7 +54,7 @@ public class TaskController : ControllerBase
     [HttpPut("{id}")]
     [ProducesResponseType(typeof(TaskResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> UpdateTask(int id, [FromBody] UpdateTaskDto dto)
+    public async Task<IActionResult> UpdateTask(Guid id, [FromBody] UpdateTaskDto dto)
     {
         var task = await _taskService.UpdateTaskAsync(id, dto);
         if (task == null)
@@ -68,7 +68,7 @@ public class TaskController : ControllerBase
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> DeleteTask(int id)
+    public async Task<IActionResult> DeleteTask(Guid id)
     {
         var result = await _taskService.DeleteTaskAsync(id);
         if (!result)

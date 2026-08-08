@@ -12,8 +12,8 @@ using TaskManagement.Infrastructure.Persistence;
 namespace TaskManagement.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260808153414_SeedCategories")]
-    partial class SeedCategories
+    [Migration("20260808164647_AddTaskCategory")]
+    partial class AddTaskCategory
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

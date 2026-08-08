@@ -2,6 +2,8 @@
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace TaskManagement.Infrastructure.Persistence.Migrations
 {
     /// <inheritdoc />
@@ -28,6 +30,18 @@ namespace TaskManagement.Infrastructure.Persistence.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Categories", x => x.Id);
+                });
+
+            migrationBuilder.InsertData(
+                table: "Categories",
+                columns: new[] { "Id", "Name" },
+                values: new object[,]
+                {
+                    { 1, "Development" },
+                    { 2, "Testing" },
+                    { 3, "Documentation" },
+                    { 4, "Bug Fix" },
+                    { 5, "Research" }
                 });
 
             migrationBuilder.CreateIndex(
