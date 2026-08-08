@@ -12,8 +12,8 @@ using TaskManagement.Infrastructure.Persistence;
 namespace TaskManagement.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260807181547_AddTaskCategory")]
-    partial class AddTaskCategory
+    [Migration("20260808153414_SeedCategories")]
+    partial class SeedCategories
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -40,6 +40,33 @@ namespace TaskManagement.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Categories");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "Development"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = "Testing"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Name = "Documentation"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Name = "Bug Fix"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Name = "Research"
+                        });
                 });
 
             modelBuilder.Entity("TaskManagement.Domain.Entities.TaskItem", b =>

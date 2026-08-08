@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TaskManagement.Infrastructure.Persistence;
 
@@ -11,9 +12,11 @@ using TaskManagement.Infrastructure.Persistence;
 namespace TaskManagement.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260808151729_AddTaskCategory")]
+    partial class AddTaskCategory
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -37,33 +40,6 @@ namespace TaskManagement.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Categories");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Name = "Development"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Name = "Testing"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Name = "Documentation"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Name = "Bug Fix"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Name = "Research"
-                        });
                 });
 
             modelBuilder.Entity("TaskManagement.Domain.Entities.TaskItem", b =>

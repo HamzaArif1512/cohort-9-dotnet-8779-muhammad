@@ -11,16 +11,21 @@ public class MappingProfile : Profile
 {
     public MappingProfile()
     {
-
         CreateMap<CreateTaskDto, TaskItem>()
             .ForMember(
                 dest => dest.UserId,
-                opt => opt.MapFrom(src => src.AssigneeId));
+                opt => opt.MapFrom(src => src.AssigneeId))
+            .ForMember(
+                dest => dest.CategoryId,
+                opt => opt.MapFrom(src => src.CategoryId));
 
         CreateMap<UpdateTaskDto, TaskItem>()
             .ForMember(
                 dest => dest.UserId,
-                opt => opt.MapFrom(src => src.AssigneeId));
+                opt => opt.MapFrom(src => src.AssigneeId))
+            .ForMember(
+                dest => dest.CategoryId,
+                opt => opt.MapFrom(src => src.CategoryId));
 
         CreateMap<TaskItem, TaskResponseDto>();
 
