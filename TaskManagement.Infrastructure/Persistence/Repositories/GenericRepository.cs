@@ -8,7 +8,7 @@ using TaskManagement.Infrastructure.Persistence;
 
 namespace TaskManagement.Infrastructure.Persistence.Repositories;
 
-public class GenericRepository<T> : IGenericRepository<T> where T : class
+public class GenericRepository<T, TKey> : IGenericRepository<T, TKey> where T : class
 {
     protected readonly ApplicationDbContext _context;
     protected readonly DbSet<T> _dbSet;
@@ -19,7 +19,7 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
         _dbSet = context.Set<T>();
     }
 
-    public async Task<T?> GetByIdAsync(Guid id)
+    public async Task<T?> GetByIdAsync(TKey id)
     {
         return await _dbSet.FindAsync(id);
     }

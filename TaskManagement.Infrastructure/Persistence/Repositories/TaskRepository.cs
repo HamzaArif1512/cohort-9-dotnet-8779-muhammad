@@ -7,7 +7,7 @@ using TaskManagement.Domain.Entities;
 
 namespace TaskManagement.Infrastructure.Persistence.Repositories;
 
-public class TaskRepository : GenericRepository<TaskItem>, ITaskRepository
+public class TaskRepository : GenericRepository<TaskItem, Guid>, ITaskRepository
 {
     public TaskRepository(ApplicationDbContext dbContext) : base(dbContext)
     {

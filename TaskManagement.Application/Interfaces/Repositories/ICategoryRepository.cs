@@ -2,7 +2,7 @@ using TaskManagement.Domain.Entities;
 
 namespace TaskManagement.Application.Interfaces.Repositories;
 
-public interface ICategoryRepository : IGenericRepository<Category>
+public interface ICategoryRepository : IGenericRepository<Category, Guid>
 {
 
 }

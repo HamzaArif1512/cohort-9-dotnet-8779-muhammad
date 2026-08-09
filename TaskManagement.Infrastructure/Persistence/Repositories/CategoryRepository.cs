@@ -7,7 +7,7 @@ using TaskManagement.Domain.Entities;
 
 namespace TaskManagement.Infrastructure.Persistence.Repositories;
 
-public class CategoryRepository : GenericRepository<Category>, ICategoryRepository
+public class CategoryRepository : GenericRepository<Category, Guid>, ICategoryRepository
 {
     public CategoryRepository(ApplicationDbContext dbContext) : base(dbContext)
     {
