@@ -2,7 +2,7 @@ using System.Linq.Expressions;
 
 namespace TaskManagement.Application.Interfaces.Repositories;
 
-public interface IGenericRepository<T> where T : class
+public interface IGenericRepository<T, TKey> where T : class
 {
     public Task<T?> GetByIdAsync(Guid id);
    public Task<IEnumerable<T>> GetAllAsync();
