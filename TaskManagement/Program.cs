@@ -28,7 +28,7 @@ namespace TaskManagement
 
             //enpoints, controllers, swagger, and other services
             builder.Services
-                .AddPresentation()
+                .AddPresentation(builder.Configuration)
                 .AddApplication()
                 .AddInfrastructure(builder.Configuration);
 
@@ -54,7 +54,7 @@ namespace TaskManagement
             app.UseSwaggerUI();
 
             //Register middleware extension method
-            app.UseGlobalExceptionMiddleware();
+            app.UseGlobalExceptionMiddleware(builder.Configuration);
 
             //Serilog request logging
             app.UseSerilogRequestLogging();

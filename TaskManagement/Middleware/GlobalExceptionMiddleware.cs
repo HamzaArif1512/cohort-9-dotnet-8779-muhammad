@@ -5,18 +5,17 @@ namespace TaskManagement.API.Middleware;
 
 public class GlobalExceptionMiddleware
 {
-    //Declarations of the constructor and the InvokeAsync method
     private readonly RequestDelegate _next;
     private readonly ILogger<GlobalExceptionMiddleware> _logger;
 
-    //constructor
-    public GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExceptionMiddleware> logger)
+    public GlobalExceptionMiddleware(
+        RequestDelegate next,
+        ILogger<GlobalExceptionMiddleware> logger)
     {
         _next = next;
         _logger = logger;
     }
 
-    //InvokeAsync method to handle exceptions
     public async Task InvokeAsync(HttpContext context)
     {
         try
@@ -26,11 +25,12 @@ public class GlobalExceptionMiddleware
         catch (Exception ex)
         {
             _logger.LogError(ex, "An unhandled exception occurred.");
-            await HandleExceptionAsync(context, ex);
+
+            await HandleExceptionAsync(context);
         }
     }
 
-    private static Task HandleExceptionAsync(HttpContext context, Exception exception)
+    private static Task HandleExceptionAsync(HttpContext context)
     {
         Log.Error(exception, "An unhandled exception occurred.");
 
