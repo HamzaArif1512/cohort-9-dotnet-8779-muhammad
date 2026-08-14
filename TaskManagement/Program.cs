@@ -4,6 +4,8 @@ using Serilog;
 using TaskManagement.API.Extensions; //register middleware extension method
 using TaskManagement.Application;
 using TaskManagement.Infrastructure;
+using TaskManagement.Infrastructure.Configurations;
+
 
 
 namespace TaskManagement
@@ -24,7 +26,7 @@ namespace TaskManagement
                     .Enrich.FromLogContext();
             });
 
-
+            builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
 
             //enpoints, controllers, swagger, and other services
             builder.Services
@@ -48,6 +50,7 @@ namespace TaskManagement
             {
                 app.MapOpenApi();
             }
+            
 
             //swagger
             app.UseSwagger();

@@ -1,6 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
+using Microsoft.EntityFrameworkCore;
 using TaskManagement.Application.Interfaces.Repositories;
 using TaskManagement.Domain.Entities;
 
@@ -11,5 +9,10 @@ public class UserRepository : GenericRepository<User, Guid>, IUserRepository
 {
     public UserRepository(ApplicationDbContext dbContext) : base(dbContext)
     {
+    }
+
+    public async Task<User?> GetByEmailAsync(string email)
+    {
+        return await _context.Users.SingleOrDefaultAsync(u => u.Email == email);
     }
 }
