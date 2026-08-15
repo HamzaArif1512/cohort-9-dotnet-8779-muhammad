@@ -6,6 +6,7 @@ using TaskManagement.Application.DTOs.TaskDtos;
 using TaskManagement.Application.Interfaces.Repositories;
 using TaskManagement.Application.Interfaces.Services;
 using TaskManagement.Domain.Entities;
+using TaskManagement.Domain.Enums;
 
 namespace TaskManagement.Application.Services;
 
@@ -24,15 +25,21 @@ public class TaskService : ITaskService
 
 
     //Create
-    public async Task<TaskResponseDto> CreateTaskAsync(CreateTaskDto dto)
+    public async Task<TaskResponseDto> CreateTaskAsync(CreateTaskDto dto, CancellationToken cancellationToken)
     {
         var task = _mapper.Map<TaskItem>(dto);
+
+        task.Status = TaskItemStatus.Pending;
+        task.CreatedAt = DateTime.UtcNow;
+        task.UpdatedAt = DateTime.UtcNow;
 
         await _taskRepository.AddAsync(task);
 
         await _taskRepository.SaveChangesAsync();
 
-        return _mapper.Map<TaskResponseDto>(task);
+        var createdTask = await _taskRepository.GetByIdWithDetailsAsync(task.Id, cancellationToken);
+
+        return _mapper.Map<TaskResponseDto>(createdTask);
     }
 
     //Retrieve all tasks

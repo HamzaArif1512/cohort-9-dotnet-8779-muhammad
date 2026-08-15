@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using TaskManagement.Application.DTOs.TaskDtos;
 using TaskManagement.Application.Interfaces.Services;
 
@@ -6,6 +7,7 @@ namespace TaskManagement.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class TaskController : ControllerBase
 {
     private readonly ITaskService _taskService;
@@ -18,11 +20,12 @@ public class TaskController : ControllerBase
 
     //Create task endpoint
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(TaskResponseDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> CreateTask([FromBody] CreateTaskDto dto)
+    public async Task<IActionResult> CreateTask([FromBody] CreateTaskDto dto, CancellationToken cancellationToken)
     {
-        var task = await _taskService.CreateTaskAsync(dto);
+        var task = await _taskService.CreateTaskAsync(dto, cancellationToken);
         return CreatedAtAction(nameof(GetTaskById), new { id = task.Id }, task);
     }
 
@@ -66,6 +69,7 @@ public class TaskController : ControllerBase
 
     //Delete task endpoint
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteTask(Guid id)

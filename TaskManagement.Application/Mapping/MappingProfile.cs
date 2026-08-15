@@ -27,7 +27,13 @@ public class MappingProfile : Profile
                 dest => dest.CategoryId,
                 opt => opt.MapFrom(src => src.CategoryId));
 
-        CreateMap<TaskItem, TaskResponseDto>();
+            CreateMap<TaskItem, TaskResponseDto>()
+         .ForMember(
+             dest => dest.CategoryName,
+             opt => opt.MapFrom(src => src.Category.Name))
+         .ForMember(
+             dest => dest.AssigneeName,
+             opt => opt.MapFrom(src => src.Users.Name));
 
         CreateMap<RegisterUserDto, User>();
 

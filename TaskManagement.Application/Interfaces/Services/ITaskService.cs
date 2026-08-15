@@ -4,7 +4,7 @@ namespace TaskManagement.Application.Interfaces.Services;
 
 public interface ITaskService
 {
-    public Task<TaskResponseDto> CreateTaskAsync(CreateTaskDto dto);
+    public Task<TaskResponseDto> CreateTaskAsync(CreateTaskDto dto, CancellationToken cancellationToken);
 
     public Task<IEnumerable<TaskResponseDto>> GetAllTasksAsync();
 

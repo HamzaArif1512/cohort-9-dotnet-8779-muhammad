@@ -17,12 +17,12 @@ public class UpdateTaskDtoValidator : AbstractValidator<UpdateTaskDto>
 
         RuleFor(x => x.Priority)
             .NotEmpty()
-            .IsEnumName(typeof(TaskPriority))
+            .IsInEnum()
             .WithMessage("Invalid priority.");
 
         RuleFor(x => x.Status)
             .NotEmpty()
-            .IsEnumName(typeof(TaskItemStatus))
+            .IsInEnum()
             .WithMessage("Invalid status.");
 
         RuleFor(x => x.CategoryId)
