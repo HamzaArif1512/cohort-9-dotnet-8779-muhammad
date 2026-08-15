@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Serilog;
 
 namespace TaskManagement.API.Middleware;
 
@@ -25,12 +26,14 @@ public class GlobalExceptionMiddleware
         {
             _logger.LogError(ex, "An unhandled exception occurred.");
 
-            await HandleExceptionAsync(context);
+            await HandleExceptionAsync(context, ex);
         }
     }
 
-    private static Task HandleExceptionAsync(HttpContext context)
+    private static Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
+        Log.Error(exception, "An unhandled exception occurred.");
+
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = StatusCodes.Status500InternalServerError;
 
@@ -41,6 +44,7 @@ public class GlobalExceptionMiddleware
         };
 
         var jsonResponse = JsonSerializer.Serialize(response);
+
         return context.Response.WriteAsync(jsonResponse);
     }
 }
