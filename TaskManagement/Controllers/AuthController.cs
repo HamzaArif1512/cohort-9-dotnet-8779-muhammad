@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using TaskManagement.Application.DTOs.AuthDtos;
 using TaskManagement.Application.DTOs.UserDtos;
+using TaskManagement.Application.Exceptions;
 using TaskManagement.Application.Interfaces.Services;
 
 namespace TaskManagement.API.Controllers;
@@ -17,18 +18,25 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
-    public async Task<IActionResult> Register(RegisterUserDto dto)
+    public async Task<IActionResult> Register(RegisterUserDto? dto)
     {
+        if (dto is null)
+        {
+            return BadRequest(new
+            {
+                Message = "Registration data is required."
+            });
+        }
         try
         {
             var response = await _authService.RegisterAsync(dto);
             return Ok(response);
         }
-        catch (Exception ex)
+        catch (DuplicateEmailException)
         {
             return Conflict(new
             {
-                Message = ex.Message,
+                Message = "A user with this email already exists."
             });
         }
     }

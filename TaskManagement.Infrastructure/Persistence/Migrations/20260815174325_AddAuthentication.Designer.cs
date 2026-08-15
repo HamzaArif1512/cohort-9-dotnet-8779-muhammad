@@ -12,7 +12,7 @@ using TaskManagement.Infrastructure.Persistence;
 namespace TaskManagement.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260811181458_AddAuthentication")]
+    [Migration("20260815174325_AddAuthentication")]
     partial class AddAuthentication
     {
         /// <inheritdoc />
@@ -20,7 +20,7 @@ namespace TaskManagement.Infrastructure.Persistence.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.10")
+                .HasAnnotation("ProductVersion", "10.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -71,7 +71,7 @@ namespace TaskManagement.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("TaskManagement.Domain.Entities.RefreshToken", b =>
                 {
-                    b.Property<Guid>("UserId")
+                    b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("ExpiresAt")
@@ -89,10 +89,15 @@ namespace TaskManagement.Infrastructure.Persistence.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("nvarchar(64)");
 
-                    b.HasKey("UserId");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
 
                     b.HasIndex("TokenHash")
                         .IsUnique();
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("RefreshTokens");
                 });

@@ -6,7 +6,7 @@ namespace TaskManagement.Application.Interfaces.Services;
 
 public interface ITokenService
 {
-    public AuthResponseDto GenerateTokens(User user);
+    public Task<AuthResponseDto> GenerateTokensAsync(User user, CancellationToken cancellationToken = default);
     public Task<AuthResponseDto?> RefreshTokensAsync(string refreshToken);
     public Task<bool> RevokeRefreshTokenAsync(string refreshToken);
 

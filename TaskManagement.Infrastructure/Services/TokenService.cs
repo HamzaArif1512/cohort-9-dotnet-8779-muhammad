@@ -26,13 +26,22 @@ public class TokenService : ITokenService
         _jwtSettings = jwtSettings.Value;
     }
 
-    public AuthResponseDto GenerateTokens(User user)
+    public async Task<AuthResponseDto> GenerateTokensAsync(
+        User user,
+        CancellationToken cancellationToken = default)
     {
-       var accessTokenExpiresAt = DateTime.UtcNow.AddMinutes(_jwtSettings.AccessTokenExpirationMinutes);
-        var refreshTokenExpiresAt = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpirationDays);
+
+        ArgumentNullException.ThrowIfNull(user);
+
+        var accessTokenExpiresAt =
+            DateTime.UtcNow.AddMinutes(_jwtSettings.AccessTokenExpirationMinutes);
+
+        var refreshTokenExpiresAt =
+            DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpirationDays);
+
         var accessToken = GenerateAccessToken(user, accessTokenExpiresAt);
         var rawRefreshToken = GenerateRefreshToken();
-        // Save the refresh token to the database
+
         var refreshToken = new RefreshToken
         {
             Id = Guid.NewGuid(),
@@ -40,8 +49,10 @@ public class TokenService : ITokenService
             TokenHash = HashToken(rawRefreshToken),
             ExpiresAt = refreshTokenExpiresAt
         };
+
         _context.RefreshTokens.Add(refreshToken);
-        _context.SaveChanges();
+
+        await _context.SaveChangesAsync(cancellationToken);
 
         return new AuthResponseDto
         {
@@ -52,33 +63,70 @@ public class TokenService : ITokenService
         };
     }
 
-    public async Task<AuthResponseDto?> RefreshTokensAsync(string refreshToken) 
+    public async Task<AuthResponseDto?> RefreshTokensAsync(string refreshToken)
     {
-       var tokenHash = HashToken(refreshToken);
+        ArgumentException.ThrowIfNullOrEmpty(refreshToken);
+
+        var tokenHash = HashToken(refreshToken);
+
+        await using var transaction = await _context.Database.BeginTransactionAsync();
 
         var storedRefreshToken = await _context.RefreshTokens
             .Include(rt => rt.User)
-            .FirstOrDefaultAsync(rt => rt.TokenHash == tokenHash && rt.ExpiresAt > DateTime.UtcNow);
+            .FirstOrDefaultAsync(rt =>
+                rt.TokenHash == tokenHash &&
+                rt.ExpiresAt > DateTime.UtcNow &&
+                rt.RevokedAt == null);
 
-        if (storedRefreshToken == null || !storedRefreshToken.IsActive)
+        if (storedRefreshToken is null)
         {
-            throw new UnauthorizedAccessException("Invalid or expired refresh token.");
+            return null;
         }
 
-        storedRefreshToken.RevokedAt = DateTime.UtcNow;
-
-        var response = GenerateTokens(storedRefreshToken.User);
+        var response = await GenerateTokensAsync(storedRefreshToken.User);
         var newTokenHash = HashToken(response.RefreshToken);
 
-        storedRefreshToken.ReplacedByTokenHash = newTokenHash;
+        var rowsAffected = await _context.RefreshTokens
+            .Where(rt =>
+                rt.Id == storedRefreshToken.Id &&
+                rt.RevokedAt == null)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(
+                    rt => rt.RevokedAt,
+                    DateTime.UtcNow)
+                .SetProperty(
+                    rt => rt.ReplacedByTokenHash,
+                    newTokenHash));
+
+        if (rowsAffected != 1)
+        {
+            await transaction.RollbackAsync();
+            return null;
+        }
+
+        // Add the new refresh token here.
+        var newRefreshToken = new RefreshToken
+        {
+            TokenHash = newTokenHash,
+            UserId = storedRefreshToken.UserId,
+            ExpiresAt = DateTime.UtcNow.AddDays(7)
+        };
+
+        _context.RefreshTokens.Add(newRefreshToken);
 
         await _context.SaveChangesAsync();
+        await transaction.CommitAsync();
 
         return response;
     }
 
     public async Task<bool> RevokeRefreshTokenAsync(string refreshToken)
     {
+        if (string.IsNullOrWhiteSpace(refreshToken))
+        {
+            return false;
+        }
+
         var tokenHash = HashToken(refreshToken);
 
         var storedRefreshToken = await _context.RefreshTokens

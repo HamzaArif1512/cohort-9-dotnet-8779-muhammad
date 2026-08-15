@@ -5,6 +5,7 @@ using TaskManagement.Application.DTOs.AuthDtos;
 using TaskManagement.Application.DTOs.UserDtos;
 using TaskManagement.Domain.Entities;
 using TaskManagement.Domain.Enums;
+using TaskManagement.Application.Exceptions;
 
 namespace TaskManagement.Application.Services;
 
@@ -26,6 +27,7 @@ public class AuthService : IAuthService
 
     public async Task<AuthResponseDto> RegisterAsync(RegisterUserDto request)
     {
+        ArgumentNullException.ThrowIfNull(request);
         ArgumentException.ThrowIfNullOrEmpty(request.Email);
         ArgumentException.ThrowIfNullOrEmpty(request.FullName);
         ArgumentException.ThrowIfNullOrEmpty(request.Password);
@@ -36,7 +38,7 @@ public class AuthService : IAuthService
 
         if (existingUser != null)
         {
-            throw new InvalidOperationException("User with this email already exists.");
+            throw new DuplicateEmailException("User with this email already exists.");
         }
 
         var user = new User
@@ -51,7 +53,7 @@ public class AuthService : IAuthService
         await _userRepository.AddAsync(user);
         await _userRepository.SaveChangesAsync();
 
-        return _tokenService.GenerateTokens(user);
+        return await _tokenService.GenerateTokensAsync(user);
     }
 
     public async Task<AuthResponseDto?> LoginAsync(LoginUserDto dto)
@@ -71,7 +73,7 @@ public class AuthService : IAuthService
             return null;
         }
 
-        var tokens = _tokenService.GenerateTokens(user);
+        var tokens = await _tokenService.GenerateTokensAsync(user);
 
         await _userRepository.SaveChangesAsync();
 

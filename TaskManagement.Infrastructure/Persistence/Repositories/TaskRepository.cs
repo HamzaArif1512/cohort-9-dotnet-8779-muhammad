@@ -17,7 +17,7 @@ public class TaskRepository : GenericRepository<TaskItem, Guid>, ITaskRepository
     {
         return await _context.TaskItems
             .Include(t => t.Category)
-            .Include(t => t.UserId)
+            .Include(t => t.Users)
             .FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
     }
 }

@@ -13,6 +13,7 @@ public class UserRepository : GenericRepository<User, Guid>, IUserRepository
 
     public async Task<User?> GetByEmailAsync(string email)
     {
+        ArgumentException.ThrowIfNullOrEmpty(email, nameof(email));
         return await _context.Users.SingleOrDefaultAsync(u => u.Email == email);
     }
 }
