@@ -10,16 +10,25 @@ public class PasswordHasherService : IPasswordHasher
 
     public PasswordHasherService(Microsoft.AspNetCore.Identity.IPasswordHasher<User> passwordHasher)
     {
+        ArgumentNullException.ThrowIfNull(passwordHasher);
         _passwordHasher = passwordHasher;
     }
 
     public string HashPassword(User user, string password)
     {
+        ArgumentNullException.ThrowIfNull(user);
+        ArgumentNullException.ThrowIfNull(password);
+
         return _passwordHasher.HashPassword(user, password);
     }
 
     public bool VerifyPassword(User user, string hashedPassword, string providedPassword)
     {
+        ArgumentNullException.ThrowIfNull(user);
+        ArgumentNullException.ThrowIfNull(hashedPassword);
+        ArgumentNullException.ThrowIfNull(providedPassword);
+
+
         var result = _passwordHasher.VerifyHashedPassword(
         user,
         hashedPassword,

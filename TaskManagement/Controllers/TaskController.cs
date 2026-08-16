@@ -32,9 +32,9 @@ public class TaskController : ControllerBase
     //Get all tasks endpoint
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<TaskResponseDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAllTasks()
+    public async Task<IActionResult> GetAllTasks(CancellationToken cancellationToken)
     {
-        var tasks = await _taskService.GetAllTasksAsync();
+        var tasks = await _taskService.GetAllTasksAsync(cancellationToken);
         return Ok(tasks);
     }
 
@@ -42,9 +42,9 @@ public class TaskController : ControllerBase
     [HttpGet("{id}")]
     [ProducesResponseType(typeof(TaskResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetTaskById(Guid id)
+    public async Task<IActionResult> GetTaskById(Guid id, CancellationToken cancellationToken)
     {
-        var task = await _taskService.GetTaskByIdAsync(id);
+        var task = await _taskService.GetTaskByIdAsync(id, cancellationToken);
         if (task == null)
         {
             return NotFound();
@@ -57,9 +57,9 @@ public class TaskController : ControllerBase
     [HttpPut("{id}")]
     [ProducesResponseType(typeof(TaskResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> UpdateTask(Guid id, [FromBody] UpdateTaskDto dto)
+    public async Task<IActionResult> UpdateTask(Guid id, [FromBody] UpdateTaskDto dto, CancellationToken cancellationToken)
     {
-        var task = await _taskService.UpdateTaskAsync(id, dto);
+        var task = await _taskService.UpdateTaskAsync(id, dto, cancellationToken);
         if (task == null)
         {
             return NotFound();

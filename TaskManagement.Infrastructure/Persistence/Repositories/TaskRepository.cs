@@ -20,4 +20,12 @@ public class TaskRepository : GenericRepository<TaskItem, Guid>, ITaskRepository
             .Include(t => t.Users)
             .FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
     }
+
+    public async Task<IEnumerable<TaskItem>> GetAllWithDetailsAsync(CancellationToken cancellationToken)
+    {
+        return await _context.TaskItems
+            .Include(t => t.Category)
+            .Include(t => t.Users)
+            .ToListAsync(cancellationToken);
+    }
 }

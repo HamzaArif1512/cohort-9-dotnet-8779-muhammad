@@ -28,11 +28,13 @@ public class AuthService : IAuthService
     public async Task<AuthResponseDto> RegisterAsync(RegisterUserDto request)
     {
         ArgumentNullException.ThrowIfNull(request);
+
+        ArgumentNullException.ThrowIfNull(request);
         ArgumentException.ThrowIfNullOrEmpty(request.Email);
         ArgumentException.ThrowIfNullOrEmpty(request.FullName);
         ArgumentException.ThrowIfNullOrEmpty(request.Password);
 
-        var normalizedEmail = request.Email.ToLowerInvariant();
+        var normalizedEmail = request.Email.Trim().ToLowerInvariant();
 
         var existingUser = await _userRepository.GetByEmailAsync(normalizedEmail);
 
