@@ -104,17 +104,6 @@ public class TokenService : ITokenService
             return null;
         }
 
-        // Add the new refresh token here.
-        var newRefreshToken = new RefreshToken
-        {
-            TokenHash = newTokenHash,
-            UserId = storedRefreshToken.UserId,
-            ExpiresAt = DateTime.UtcNow.AddDays(7)
-        };
-
-        _context.RefreshTokens.Add(newRefreshToken);
-
-        await _context.SaveChangesAsync();
         await transaction.CommitAsync();
 
         return response;
