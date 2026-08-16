@@ -35,7 +35,7 @@ public class TaskService : ITaskService
 
         await _taskRepository.AddAsync(task);
 
-        await _taskRepository.SaveChangesAsync();
+        await _taskRepository.SaveChangesAsync(cancellationToken);
 
         var createdTask = await _taskRepository.GetByIdWithDetailsAsync(task.Id, cancellationToken);
 

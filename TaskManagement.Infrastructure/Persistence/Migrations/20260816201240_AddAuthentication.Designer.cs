@@ -12,8 +12,8 @@ using TaskManagement.Infrastructure.Persistence;
 namespace TaskManagement.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260816182106_AddUniqueEmailIndex")]
-    partial class AddUniqueEmailIndex
+    [Migration("20260816201240_AddAuthentication")]
+    partial class AddAuthentication
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

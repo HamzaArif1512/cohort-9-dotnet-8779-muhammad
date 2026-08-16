@@ -61,6 +61,8 @@ public class AuthService : IAuthService
     public async Task<AuthResponseDto?> LoginAsync(LoginUserDto dto)
     {
         ArgumentNullException.ThrowIfNull(dto);
+        ArgumentException.ThrowIfNullOrWhiteSpace(dto.Email);
+        ArgumentException.ThrowIfNullOrWhiteSpace(dto.Password);
 
         var normalizedEmail = dto.Email.Trim().ToLowerInvariant();
 
@@ -84,6 +86,7 @@ public class AuthService : IAuthService
 
     public async Task<AuthResponseDto?> RefreshTokensAsync(RefreshTokenRequestDto dto)
     {
+        ArgumentNullException.ThrowIfNull(dto);
         ArgumentException.ThrowIfNullOrEmpty(dto.RefreshToken);
 
         return await _tokenService.RefreshTokensAsync(dto.RefreshToken);
