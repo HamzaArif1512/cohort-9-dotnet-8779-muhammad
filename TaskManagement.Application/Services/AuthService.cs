@@ -29,7 +29,7 @@ public class AuthService : IAuthService
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        ArgumentNullException.ThrowIfNull(request);
+
         ArgumentException.ThrowIfNullOrEmpty(request.Email);
         ArgumentException.ThrowIfNullOrEmpty(request.FullName);
         ArgumentException.ThrowIfNullOrEmpty(request.Password);
