@@ -21,7 +21,7 @@ public class CreateTaskDtoValidator : AbstractValidator<CreateTaskDto>
 
         RuleFor(x => x.Priority)
             .NotEmpty()
-            .IsEnumName(typeof(TaskPriority))
+            .IsInEnum()
             .WithMessage("Invalid priority.");
 
         RuleFor(x => x.CategoryId)

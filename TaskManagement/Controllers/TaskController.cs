@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using TaskManagement.Application.DTOs.TaskDtos;
 using TaskManagement.Application.Interfaces.Services;
 
@@ -6,6 +7,7 @@ namespace TaskManagement.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class TaskController : ControllerBase
 {
     private readonly ITaskService _taskService;
@@ -18,20 +20,21 @@ public class TaskController : ControllerBase
 
     //Create task endpoint
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(TaskResponseDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> CreateTask([FromBody] CreateTaskDto dto)
+    public async Task<IActionResult> CreateTask([FromBody] CreateTaskDto dto, CancellationToken cancellationToken)
     {
-        var task = await _taskService.CreateTaskAsync(dto);
+        var task = await _taskService.CreateTaskAsync(dto, cancellationToken);
         return CreatedAtAction(nameof(GetTaskById), new { id = task.Id }, task);
     }
 
     //Get all tasks endpoint
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<TaskResponseDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAllTasks()
+    public async Task<IActionResult> GetAllTasks(CancellationToken cancellationToken)
     {
-        var tasks = await _taskService.GetAllTasksAsync();
+        var tasks = await _taskService.GetAllTasksAsync(cancellationToken);
         return Ok(tasks);
     }
 
@@ -39,9 +42,9 @@ public class TaskController : ControllerBase
     [HttpGet("{id}")]
     [ProducesResponseType(typeof(TaskResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetTaskById(Guid id)
+    public async Task<IActionResult> GetTaskById(Guid id, CancellationToken cancellationToken)
     {
-        var task = await _taskService.GetTaskByIdAsync(id);
+        var task = await _taskService.GetTaskByIdAsync(id, cancellationToken);
         if (task == null)
         {
             return NotFound();
@@ -54,9 +57,9 @@ public class TaskController : ControllerBase
     [HttpPut("{id}")]
     [ProducesResponseType(typeof(TaskResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> UpdateTask(Guid id, [FromBody] UpdateTaskDto dto)
+    public async Task<IActionResult> UpdateTask(Guid id, [FromBody] UpdateTaskDto dto, CancellationToken cancellationToken)
     {
-        var task = await _taskService.UpdateTaskAsync(id, dto);
+        var task = await _taskService.UpdateTaskAsync(id, dto, cancellationToken);
         if (task == null)
         {
             return NotFound();
@@ -66,6 +69,7 @@ public class TaskController : ControllerBase
 
     //Delete task endpoint
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteTask(Guid id)

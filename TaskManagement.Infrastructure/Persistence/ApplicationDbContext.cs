@@ -15,6 +15,8 @@ public class ApplicationDbContext : DbContext
 
     public DbSet<Category> Categories => Set<Category>();
 
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

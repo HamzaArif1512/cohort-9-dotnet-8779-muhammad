@@ -1,9 +1,18 @@
+using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using TaskManagement.API.Extensions; //register middleware extension method
 using TaskManagement.Application;
+using TaskManagement.Application.Validators.UserValidators;
 using TaskManagement.Infrastructure;
+using TaskManagement.Infrastructure.Configurations;
+
 
 
 namespace TaskManagement
@@ -24,7 +33,38 @@ namespace TaskManagement
                     .Enrich.FromLogContext();
             });
 
+            builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
 
+            var jwtSettings = builder.Configuration.GetSection("Jwt").Get<JwtSettings>() ?? throw new InvalidOperationException("JWT settings are not configured properly.");
+
+            //Authentication scheme
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = jwtSettings.Issuer,
+                        ValidAudience = jwtSettings.Audience,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key)),
+                        ClockSkew = TimeSpan.Zero
+                    };
+                });
+
+            //Authorization
+            builder.Services.AddAuthorization();
+
+            //Register Validation
+            builder.Services.AddControllers().AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            });
+
+            builder.Services.AddFluentValidationAutoValidation();
+            builder.Services.AddValidatorsFromAssemblyContaining<RegisterUserDtoValidator>();
 
             //enpoints, controllers, swagger, and other services
             builder.Services
@@ -48,6 +88,7 @@ namespace TaskManagement
             {
                 app.MapOpenApi();
             }
+            
 
             //swagger
             app.UseSwagger();
@@ -60,6 +101,8 @@ namespace TaskManagement
             app.UseSerilogRequestLogging();
 
             app.UseHttpsRedirection();
+
+            app.UseAuthentication();
 
             app.UseAuthorization();
 
