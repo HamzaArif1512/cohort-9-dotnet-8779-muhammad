@@ -172,6 +172,33 @@ public class TaskService : ITaskService
         return _mapper.Map<TaskResponseDto>(updatedTask);
     }
 
+    //Apply custom filter to retrieve tasks
+    public async Task<IEnumerable<TaskResponseDto>> SearchTasksAsync(TaskSearchDto filters, CancellationToken cancellationToken)
+    {
+        if (filters == null)
+        {
+            throw new ArgumentNullException(nameof(filters));
+        }
+
+        Guid? userId = null;
+
+        if(!_currentUserService.IsAdmin)
+        {
+            userId = _currentUserService.UserId;
+            if (userId is null)
+            {
+                _logger.LogWarning(
+                    "User {UserId} does not exist.",
+                    userId);
+                throw new UnauthorizedAccessException("Unable to determine the current user.");
+            }
+        }
+
+        var tasks = await _taskRepository.SearchAsync(filters, userId, cancellationToken);
+
+        return _mapper.Map<IEnumerable<TaskResponseDto>>(tasks);
+    }
+
     //Delete task
     public async Task<bool> DeleteTaskAsync(Guid id)
     {

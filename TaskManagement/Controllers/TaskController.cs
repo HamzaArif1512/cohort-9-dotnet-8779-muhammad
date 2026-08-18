@@ -67,6 +67,18 @@ public class TaskController : ControllerBase
         return Ok(task);
     }
 
+
+    //Apply filters to search tasks endpoint
+    [HttpGet("search")]
+    [Authorize]
+    [ProducesResponseType(typeof(IEnumerable<TaskResponseDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> SearchTasks([FromQuery] TaskSearchDto filters, CancellationToken cancellationToken)
+    {
+        var tasks = await _taskService.SearchTasksAsync(filters, cancellationToken);
+        return Ok(tasks);
+    }
+
+
     //Delete task endpoint
     [HttpDelete("{id}")]
     [Authorize(Roles = "Admin")]

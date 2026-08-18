@@ -429,6 +429,473 @@ public class TaskServiceTests
         task.Priority.Should().Be(TaskPriority.High);
     }
 
+    //Admin filtering test
+    [Fact]
+    public async Task SearchTasks_Admin_ReturnsAllMatchingTasks()
+    {
+        // Arrange
+        _currentUserServiceMock
+            .Setup(x => x.IsAdmin)
+            .Returns(true);
+
+        var filters = new TaskSearchDto
+        {
+            Keyword = "database",
+            Status = TaskItemStatus.Pending,
+            Priority = TaskPriority.High
+        };
+
+        var tasks = new List<TaskItem>
+    {
+        new TaskItem
+        {
+            Id = Guid.NewGuid(),
+            Title = "Database migration",
+            Status = TaskItemStatus.Pending,
+            Priority = TaskPriority.High,
+            UserId = Guid.NewGuid()
+        },
+        new TaskItem
+        {
+            Id = Guid.NewGuid(),
+            Title = "Database testing",
+            Status = TaskItemStatus.Pending,
+            Priority = TaskPriority.High,
+            UserId = Guid.NewGuid()
+        }
+    };
+
+        var expectedResponse = new List<TaskResponseDto>
+    {
+        new TaskResponseDto(),
+        new TaskResponseDto()
+    };
+
+        _taskRepositoryMock
+            .Setup(x => x.SearchAsync(
+                filters,
+                null,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(tasks);
+
+        _mapperMock
+            .Setup(x => x.Map<IEnumerable<TaskResponseDto>>(tasks))
+            .Returns(expectedResponse);
+
+        // Act
+        var result = await _taskService.SearchTasksAsync(
+            filters,
+            CancellationToken.None);
+
+        // Assert
+        result.Should().BeSameAs(expectedResponse);
+
+        _taskRepositoryMock.Verify(
+            x => x.SearchAsync(
+                filters,
+                null,
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    //Regular user filtering test
+    [Fact]
+    public async Task SearchTasks_RegularUser_ReturnsOnlyOwnTasks()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+
+        _currentUserServiceMock
+            .Setup(x => x.IsAdmin)
+            .Returns(false);
+
+        _currentUserServiceMock
+            .Setup(x => x.UserId)
+            .Returns(userId);
+
+        var filters = new TaskSearchDto
+        {
+            Keyword = "database"
+        };
+
+        var tasks = new List<TaskItem>
+    {
+        new TaskItem
+        {
+            Id = Guid.NewGuid(),
+            Title = "Database task",
+            UserId = userId
+        }
+    };
+
+        var expectedResponse = new List<TaskResponseDto>
+    {
+        new TaskResponseDto()
+    };
+
+        _taskRepositoryMock
+            .Setup(x => x.SearchAsync(
+                filters,
+                userId,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(tasks);
+
+        _mapperMock
+            .Setup(x => x.Map<IEnumerable<TaskResponseDto>>(tasks))
+            .Returns(expectedResponse);
+
+        // Act
+        var result = await _taskService.SearchTasksAsync(
+            filters,
+            CancellationToken.None);
+
+        // Assert
+        result.Should().BeSameAs(expectedResponse);
+
+        _taskRepositoryMock.Verify(
+            x => x.SearchAsync(
+                filters,
+                userId,
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    //invalid user negative filtering test
+    [Fact]
+    public async Task SearchTasks_RegularUserWithoutUserId_ThrowsUnauthorizedAccessException()
+    {
+        // Arrange
+        _currentUserServiceMock
+            .Setup(x => x.IsAdmin)
+            .Returns(false);
+
+        _currentUserServiceMock
+            .Setup(x => x.UserId)
+            .Returns((Guid?)null);
+
+        var filters = new TaskSearchDto
+        {
+            Keyword = "database"
+        };
+
+        // Act
+        Func<Task> act = async () =>
+            await _taskService.SearchTasksAsync(
+                filters,
+                CancellationToken.None);
+
+        // Assert
+        await act.Should()
+            .ThrowAsync<UnauthorizedAccessException>();
+
+        _taskRepositoryMock.Verify(
+            x => x.SearchAsync(
+                It.IsAny<TaskSearchDto>(),
+                It.IsAny<Guid?>(),
+                It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    //keyword filter test
+    [Fact]
+    public async Task SearchTasks_WithKeyword_PassesKeywordToRepository()
+    {
+        // Arrange
+        _currentUserServiceMock
+            .Setup(x => x.IsAdmin)
+            .Returns(true);
+
+        var filters = new TaskSearchDto
+        {
+            Keyword = "authentication"
+        };
+
+        var tasks = new List<TaskItem>();
+
+        _taskRepositoryMock
+            .Setup(x => x.SearchAsync(
+                filters,
+                null,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(tasks);
+
+        _mapperMock
+            .Setup(x => x.Map<IEnumerable<TaskResponseDto>>(tasks))
+            .Returns(new List<TaskResponseDto>());
+
+        // Act
+        await _taskService.SearchTasksAsync(
+            filters,
+            CancellationToken.None);
+
+        // Assert
+        _taskRepositoryMock.Verify(
+            x => x.SearchAsync(
+                It.Is<TaskSearchDto>(f =>
+                    f.Keyword == "authentication"),
+                null,
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    //user task status filter test
+    [Fact]
+    public async Task SearchTasks_WithStatus_PassesStatusToRepository()
+    {
+        // Arrange
+        _currentUserServiceMock
+            .Setup(x => x.IsAdmin)
+            .Returns(true);
+
+        var filters = new TaskSearchDto
+        {
+            Status = TaskItemStatus.Completed
+        };
+
+        var tasks = new List<TaskItem>();
+
+        _taskRepositoryMock
+            .Setup(x => x.SearchAsync(
+                filters,
+                null,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(tasks);
+
+        _mapperMock
+            .Setup(x => x.Map<IEnumerable<TaskResponseDto>>(tasks))
+            .Returns(new List<TaskResponseDto>());
+
+        // Act
+        await _taskService.SearchTasksAsync(
+            filters,
+            CancellationToken.None);
+
+        // Assert
+        _taskRepositoryMock.Verify(
+            x => x.SearchAsync(
+                It.Is<TaskSearchDto>(f =>
+                    f.Status == TaskItemStatus.Completed),
+                null,
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    //priority filter test
+    [Fact]
+    public async Task SearchTasks_WithPriority_PassesPriorityToRepository()
+    {
+        // Arrange
+        _currentUserServiceMock
+            .Setup(x => x.IsAdmin)
+            .Returns(true);
+
+        var filters = new TaskSearchDto
+        {
+            Priority = TaskPriority.Critical
+        };
+
+        var tasks = new List<TaskItem>();
+
+        _taskRepositoryMock
+            .Setup(x => x.SearchAsync(
+                filters,
+                null,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(tasks);
+
+        _mapperMock
+            .Setup(x => x.Map<IEnumerable<TaskResponseDto>>(tasks))
+            .Returns(new List<TaskResponseDto>());
+
+        // Act
+        await _taskService.SearchTasksAsync(
+            filters,
+            CancellationToken.None);
+
+        // Assert
+        _taskRepositoryMock.Verify(
+            x => x.SearchAsync(
+                It.Is<TaskSearchDto>(f =>
+                    f.Priority == TaskPriority.Critical),
+                null,
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    //assignee filter test
+    [Fact]
+    public async Task SearchTasks_WithAssignee_PassesAssigneeToRepository()
+    {
+        // Arrange
+        _currentUserServiceMock
+            .Setup(x => x.IsAdmin)
+            .Returns(true);
+
+        var assigneeId = Guid.NewGuid();
+
+        var filters = new TaskSearchDto
+        {
+            AssigneeId = assigneeId
+        };
+
+        var tasks = new List<TaskItem>();
+
+        _taskRepositoryMock
+            .Setup(x => x.SearchAsync(
+                filters,
+                null,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(tasks);
+
+        _mapperMock
+            .Setup(x => x.Map<IEnumerable<TaskResponseDto>>(tasks))
+            .Returns(new List<TaskResponseDto>());
+
+        // Act
+        await _taskService.SearchTasksAsync(
+            filters,
+            CancellationToken.None);
+
+        // Assert
+        _taskRepositoryMock.Verify(
+            x => x.SearchAsync(
+                It.Is<TaskSearchDto>(f =>
+                    f.AssigneeId == assigneeId),
+                null,
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    //due date range filter
+    [Fact]
+    public async Task SearchTasks_WithDueDateRange_PassesDateRangeToRepository()
+    {
+        // Arrange
+        _currentUserServiceMock
+            .Setup(x => x.IsAdmin)
+            .Returns(true);
+
+        var from = new DateTime(2026, 8, 1);
+        var to = new DateTime(2026, 8, 31);
+
+        var filters = new TaskSearchDto
+        {
+            DateDueFrom = from,
+            DateDueTo = to
+        };
+
+        var tasks = new List<TaskItem>();
+
+        _taskRepositoryMock
+            .Setup(x => x.SearchAsync(
+                filters,
+                null,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(tasks);
+
+        _mapperMock
+            .Setup(x => x.Map<IEnumerable<TaskResponseDto>>(tasks))
+            .Returns(new List<TaskResponseDto>());
+
+        // Act
+        await _taskService.SearchTasksAsync(
+            filters,
+            CancellationToken.None);
+
+        // Assert
+        _taskRepositoryMock.Verify(
+            x => x.SearchAsync(
+                It.Is<TaskSearchDto>(f =>
+                    f.DateDueFrom == from &&
+                    f.DateDueTo == to),
+                null,
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    //multiple filter test
+    [Fact]
+    public async Task SearchTasks_WithMultipleFilters_PassesAllFiltersToRepository()
+    {
+        // Arrange
+        _currentUserServiceMock
+            .Setup(x => x.IsAdmin)
+            .Returns(true);
+
+        var assigneeId = Guid.NewGuid();
+
+        var filters = new TaskSearchDto
+        {
+            Keyword = "API",
+            AssigneeId = assigneeId,
+            Status = TaskItemStatus.Pending,
+            Priority = TaskPriority.High,
+            CategoryId = 1,
+            DateDueFrom = new DateTime(2026, 8, 1),
+            DateDueTo = new DateTime(2026, 8, 31)
+        };
+
+        var tasks = new List<TaskItem>();
+
+        _taskRepositoryMock
+            .Setup(x => x.SearchAsync(
+                filters,
+                null,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(tasks);
+
+        _mapperMock
+            .Setup(x => x.Map<IEnumerable<TaskResponseDto>>(tasks))
+            .Returns(new List<TaskResponseDto>());
+
+        // Act
+        await _taskService.SearchTasksAsync(
+            filters,
+            CancellationToken.None);
+
+        // Assert
+        _taskRepositoryMock.Verify(
+            x => x.SearchAsync(
+                It.Is<TaskSearchDto>(f =>
+                    f.Keyword == "API" &&
+                    f.AssigneeId == assigneeId &&
+                    f.Status == TaskItemStatus.Pending &&
+                    f.Priority == TaskPriority.High &&
+                    f.CategoryId == 1 &&
+                    f.DateDueFrom == new DateTime(2026, 8, 1) &&
+                    f.DateDueTo == new DateTime(2026, 8, 31)),
+                null,
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    //null filter negative test
+    [Fact]
+    public async Task SearchTasks_NullFilters_ThrowsArgumentNullException()
+    {
+        // Arrange
+        _currentUserServiceMock
+            .Setup(x => x.IsAdmin)
+            .Returns(true);
+
+        // Act
+        Func<Task> act = async () =>
+            await _taskService.SearchTasksAsync(
+                null!,
+                CancellationToken.None);
+
+        // Assert
+        await act.Should()
+            .ThrowAsync<ArgumentNullException>();
+
+        _taskRepositoryMock.Verify(
+            x => x.SearchAsync(
+                It.IsAny<TaskSearchDto>(),
+                It.IsAny<Guid?>(),
+                It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
     //Warning Serilog Test
     [Fact]
     public async Task UnauthorizedTaskUpdate_ShouldWriteWarningLog()
