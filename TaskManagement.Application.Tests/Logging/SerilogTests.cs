@@ -1,5 +1,8 @@
 using FluentAssertions;
 using Serilog;
+using TaskManagement.Application.DTOs.TaskDtos;
+using TaskManagement.Domain.Entities;
+using TaskManagement.Domain.Enums;
 using Xunit;
 
 namespace TaskManagement.Application.Tests.Logging;
@@ -111,4 +114,6 @@ public class SerilogTests
 
         return directory;
     }
+
+
 }

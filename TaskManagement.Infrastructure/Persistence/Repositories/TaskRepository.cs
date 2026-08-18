@@ -28,4 +28,15 @@ public class TaskRepository : GenericRepository<TaskItem, Guid>, ITaskRepository
             .Include(t => t.Users)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<IEnumerable<TaskItem>> GetAllByUserIdWithDetailsAsync(
+        Guid userId,
+        CancellationToken cancellationToken)
+    {
+        return await _context.TaskItems
+            .Include(t => t.Category)
+            .Include(t => t.Users)
+            .Where(t => t.UserId == userId)
+            .ToListAsync(cancellationToken);
+    }
 }

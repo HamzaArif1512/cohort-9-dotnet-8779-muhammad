@@ -1,6 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
+using Microsoft.Extensions.Logging;
 using AutoMapper;
 using TaskManagement.Application.DTOs.TaskDtos;
 using TaskManagement.Application.Interfaces.Repositories;
@@ -13,14 +11,20 @@ namespace TaskManagement.Application.Services;
 public class TaskService : ITaskService
 {
     private readonly IMapper _mapper;
+    private readonly ILogger<TaskService> _logger;
     private readonly ITaskRepository _taskRepository;
+    private readonly ICurrentUserService _currentUserService;
 
     public TaskService(
         ITaskRepository taskrepository,
-        IMapper mapper)
+        IMapper mapper,
+        ICurrentUserService currentUserService,
+        ILogger<TaskService> logger )
     {
         _taskRepository = taskrepository;
         _mapper = mapper;
+        _currentUserService = currentUserService;
+        _logger = logger;
     }
 
 
@@ -28,6 +32,8 @@ public class TaskService : ITaskService
     public async Task<TaskResponseDto> CreateTaskAsync(CreateTaskDto dto, CancellationToken cancellationToken)
     {
         var task = _mapper.Map<TaskItem>(dto);
+
+        task.UserId = dto.AssigneeId;
 
         task.Status = TaskItemStatus.Pending;
         task.CreatedAt = DateTime.UtcNow;
@@ -41,6 +47,10 @@ public class TaskService : ITaskService
 
         if(createdTask is null)
         {
+            _logger.LogError(
+                "Task creation failed for task with title {TaskTitle}.",
+                dto.Title);
+
             throw new InvalidOperationException("Task creation failed.");
         }
 
@@ -50,7 +60,29 @@ public class TaskService : ITaskService
     //Retrieve all tasks
     public async Task<IEnumerable<TaskResponseDto>> GetAllTasksAsync(CancellationToken cancellationToken)
     {
-        var tasks = await _taskRepository.GetAllWithDetailsAsync(cancellationToken);
+        IEnumerable<TaskItem> tasks;
+
+        if(_currentUserService.IsAdmin)
+        {
+            tasks = await _taskRepository.GetAllWithDetailsAsync(cancellationToken);
+        }
+        else
+        {
+            var userId = _currentUserService.UserId;
+
+            if(userId is null)
+            {
+                _logger.LogWarning(
+                    "User {UserId} does not exist.",
+                    userId);
+
+                throw new UnauthorizedAccessException("Unable to determine the current user.");
+            }
+
+         
+
+            tasks = await _taskRepository.GetAllByUserIdWithDetailsAsync(userId.Value, cancellationToken);
+        }
 
         return _mapper.Map<IEnumerable<TaskResponseDto>>(tasks);
     }
@@ -62,8 +94,23 @@ public class TaskService : ITaskService
         var task = await _taskRepository.GetByIdWithDetailsAsync(id, cancellationToken);
         if (task == null)
         {
+            _logger.LogWarning(
+                "Task with ID {TaskId} not found.",
+                id);
+
             return null;
         }
+
+        if(!_currentUserService.IsAdmin && task.UserId != _currentUserService.UserId)
+        {
+            _logger.LogWarning(
+                "User {UserId} attempted to access task {TaskId} without authorization.",
+                _currentUserService.UserId,
+                id);
+
+            throw new UnauthorizedAccessException("You are not authorized to access this task.");
+        }
+
         return _mapper.Map<TaskResponseDto>(task);
     }
 
@@ -82,7 +129,37 @@ public class TaskService : ITaskService
             return null;
         }
 
-        _mapper.Map(dto, task);
+        var currentUserId = _currentUserService.UserId;
+
+        if (currentUserId is null) 
+        {
+            _logger.LogWarning(
+                "User {UserId} does not exist.",
+                currentUserId);
+
+            throw new UnauthorizedAccessException("Unable to determine the current user.");
+        }
+
+        if (_currentUserService.IsAdmin)
+        {
+            _mapper.Map(dto, task);
+        }
+        else
+        {
+            if(task.UserId != currentUserId.Value)
+            {
+                _logger.LogWarning(
+                    "User {UserId} attempted to update task {TaskId} without authorization.",
+                    currentUserId,
+                    id);
+
+                throw new UnauthorizedAccessException("You are not authorized to update this task.");
+            }
+            task.Status = dto.Status;
+        }
+
+
+        task.UpdatedAt = DateTime.UtcNow;
 
         _taskRepository.Update(task);
 

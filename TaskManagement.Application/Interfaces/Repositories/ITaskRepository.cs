@@ -7,4 +7,6 @@ public interface ITaskRepository : IGenericRepository<TaskItem, Guid>
   public Task<TaskItem?> GetByIdWithDetailsAsync(Guid id, CancellationToken cancellationToken);
 
     public Task<IEnumerable<TaskItem>> GetAllWithDetailsAsync(CancellationToken cancellationToken);
+
+    public Task<IEnumerable<TaskItem>> GetAllByUserIdWithDetailsAsync(Guid userId, CancellationToken cancellationToken);
 }

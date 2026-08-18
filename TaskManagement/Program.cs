@@ -9,6 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using TaskManagement.API.Extensions; //register middleware extension method
 using TaskManagement.Application;
+using TaskManagement.Application.Interfaces.Services;
 using TaskManagement.Application.Validators.UserValidators;
 using TaskManagement.Infrastructure;
 using TaskManagement.Infrastructure.Configurations;
@@ -65,6 +66,10 @@ namespace TaskManagement
 
             builder.Services.AddFluentValidationAutoValidation();
             builder.Services.AddValidatorsFromAssemblyContaining<RegisterUserDtoValidator>();
+
+            //Task Management
+            builder.Services.AddHttpContextAccessor();
+            builder.Services.AddScoped<ICurrentUserService, ICurrentUserService>();
 
             //enpoints, controllers, swagger, and other services
             builder.Services
