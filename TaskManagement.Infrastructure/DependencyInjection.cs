@@ -28,6 +28,8 @@ public static class DependencyInjection
         services.AddScoped<ITaskService, TaskService>();
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IDashboardService, DashboardService>();
+        services.AddScoped<IProfileService, ProfileService>();
+        services.AddScoped<IAdminUserService, AdminUserService>();
 
         return services;
     }
