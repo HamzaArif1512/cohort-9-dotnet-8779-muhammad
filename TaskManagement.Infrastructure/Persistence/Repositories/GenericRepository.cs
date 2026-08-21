@@ -13,7 +13,7 @@ public class GenericRepository<T, TKey> : IGenericRepository<T, TKey>
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        _context = context;
+        _context = context ?? throw new ArgumentNullException(nameof(context));
         _dbSet = context.Set<T>();
     }
 

@@ -26,8 +26,7 @@ public static class DependencyInjection
         }
 
         services.AddDbContext<ApplicationDbContext>(options =>
-        options.UseSqlServer(
-        configuration.GetConnectionString("DefaultConnection")));
+            options.UseSqlServer(connectionString));
 
         services.AddScoped<ITaskRepository, TaskRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
