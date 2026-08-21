@@ -298,14 +298,14 @@ public class TokenServiceTests : IDisposable
 
     private User CreateUser()
     {
-        return new User
-        {
-            Id = Guid.NewGuid(),
-            Name = "Test User",
-            Email = $"test-{Guid.NewGuid()}@example.com",
-            PasswordHash = "hashed-password",
-            Role = UserRole.RegularUser
-        };
+        var user = new User(
+            "Test User",
+            $"test-{Guid.NewGuid()}@example.com",
+            UserRole.RegularUser);
+
+        user.SetPasswordHash("hashed-password");
+
+        return user;
     }
 
     private async Task AddUserAsync(User user)

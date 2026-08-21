@@ -71,6 +71,8 @@ public class TaskService : ITaskService
     public async Task<TaskResponseDto?> UpdateTaskAsync(
         Guid id,
         UpdateTaskDto dto,
+        Guid userId,
+        bool isAdmin,
         CancellationToken cancellationToken)
     {
         var task = await _taskRepository.GetByIdWithDetailsAsync(
@@ -80,6 +82,11 @@ public class TaskService : ITaskService
         if (task == null)
         {
             return null;
+        }
+
+        if(!isAdmin && task.UserId != userId)
+        {
+            throw new UnauthorizedAccessException("You are not authorized to update this task.");
         }
 
         _mapper.Map(dto, task);

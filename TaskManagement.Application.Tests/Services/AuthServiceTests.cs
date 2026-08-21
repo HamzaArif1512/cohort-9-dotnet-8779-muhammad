@@ -109,11 +109,12 @@ public class AuthServiceTests
             ConfirmPassword = "Password123"
         };
 
-        var existingUser = new User
-        {
-            Name = "test",
-            Email = "test@example.com",
-        };
+        var existingUser = new User(
+            "test",
+            "test@example.com",
+            UserRole.RegularUser);
+
+        existingUser.SetPasswordHash("hashed-password");
 
         _userRepositoryMock
             .Setup(x => x.GetByEmailAsync("test@example.com"))
@@ -146,16 +147,14 @@ public class AuthServiceTests
         {
             Email = "TEST@example.com",
             Password = "Password123"
-
         };
 
-        var user = new User
-        {
-            Name = "Test User",
-            Email = "test@example.com",
-            PasswordHash = "hashed-password",
-            Role = UserRole.RegularUser
-        };
+        var user = new User(
+            "Test User",
+            "test@example.com",
+            UserRole.RegularUser);
+
+        user.SetPasswordHash("hashed-password");
 
         var expectedResponse = new AuthResponseDto
         {
@@ -168,37 +167,40 @@ public class AuthServiceTests
             .ReturnsAsync(user);
 
         _passwordHasherMock
-            .Setup(x => x.VerifyPassword(user, "hashed-password", "Password123"))
+            .Setup(x => x.VerifyPassword(
+                user,
+                "hashed-password",
+                "Password123"))
             .Returns(true);
 
         _tokenServiceMock
-    .Setup(x => x.GenerateTokensAsync(
-        user,
-        It.IsAny<CancellationToken>()))
-    .ReturnsAsync(expectedResponse);
+            .Setup(x => x.GenerateTokensAsync(
+                user,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expectedResponse);
 
-
-
+        // Act
         var result = await _authService.LoginAsync(dto);
 
+        // Assert
         result.Should().BeSameAs(expectedResponse);
 
-            _passwordHasherMock.Verify(
-        x => x.VerifyPassword(
-            user,
-            "hashed-password",
-            "Password123"),
-        Times.Once);
+        _passwordHasherMock.Verify(
+            x => x.VerifyPassword(
+                user,
+                "hashed-password",
+                "Password123"),
+            Times.Once);
 
-            _tokenServiceMock.Verify(
-        x => x.GenerateTokensAsync(
-            user,
-            It.IsAny<CancellationToken>()),
-        Times.Once);
+        _tokenServiceMock.Verify(
+            x => x.GenerateTokensAsync(
+                user,
+                It.IsAny<CancellationToken>()),
+            Times.Once);
 
-            _userRepositoryMock.Verify(
-        x => x.SaveChangesAsync(),
-        Times.Once);
+        _userRepositoryMock.Verify(
+            x => x.SaveChangesAsync(),
+            Times.Once);
     }
 
 
@@ -246,13 +248,12 @@ public class AuthServiceTests
             Password = "WrongPassword123"
         };
 
-        var user = new User
-        {
-            Name = "Test User",
-            Email = "test@example.com",
-            PasswordHash = "hashed-password",
-            Role = UserRole.RegularUser
-        };
+        var user = new User(
+            "Test User",
+            "test@example.com",
+            UserRole.RegularUser);
+
+        user.SetPasswordHash("hashed-password");
 
         _userRepositoryMock
             .Setup(x => x.GetByEmailAsync("test@example.com"))

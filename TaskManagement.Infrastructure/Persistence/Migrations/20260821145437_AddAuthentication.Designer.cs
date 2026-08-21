@@ -12,7 +12,7 @@ using TaskManagement.Infrastructure.Persistence;
 namespace TaskManagement.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260816201240_AddAuthentication")]
+    [Migration("20260821145437_AddAuthentication")]
     partial class AddAuthentication
     {
         /// <inheritdoc />
