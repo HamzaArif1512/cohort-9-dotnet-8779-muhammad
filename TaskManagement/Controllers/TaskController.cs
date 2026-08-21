@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using TaskManagement.Application.DTOs.TaskDtos;
 using TaskManagement.Application.Interfaces.Services;
+using System.Security.Claims;
 
 namespace TaskManagement.API.Controllers;
 
@@ -56,9 +57,18 @@ public class TaskController : ControllerBase
     //Update task endpoint
     [HttpPut("{id}")]
     [ProducesResponseType(typeof(TaskResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateTask(Guid id, [FromBody] UpdateTaskDto dto, CancellationToken cancellationToken)
     {
+
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if(!Guid.TryParse(userId, out var authenticatedUserId))
+        {
+            return Unauthorized();
+        }
+
         var task = await _taskService.UpdateTaskAsync(id, dto, cancellationToken);
         if (task == null)
         {

@@ -22,7 +22,7 @@ public static class ServiceCollectionExtensions
                 Version = "v1",
                 Description = "ASP.NET Core Web API with JWT authentication. " +
                 "Target Framework is .NET 10. " +
-                "Swashbuckle.AspNetCore 10.1.7 is used."
+                "Swashbuckle.AspNetCore 10.2.3 is used."
             });
 
             // Add a Security Scheme (using a JWT Bearer token).

@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
+using TaskManagement.Application.Interfaces.Services;
 
 namespace TaskManagement.Application.Services;
 
-internal class CategoryService
+public class CategoryService : ICategoryService
 {
 }

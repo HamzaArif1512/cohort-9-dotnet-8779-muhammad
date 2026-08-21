@@ -26,6 +26,12 @@ public class GlobalExceptionMiddleware
         {
             _logger.LogError(ex, "An unhandled exception occurred.");
 
+            if(context.Response.HasStarted)
+            {
+                _logger.LogWarning("The response has already started, the global exception middleware will not be executed.");
+                throw;
+            }
+
             await HandleExceptionAsync(context, ex);
         }
     }

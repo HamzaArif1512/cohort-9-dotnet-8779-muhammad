@@ -1,5 +1,6 @@
 using AutoMapper;
 using TaskManagement.Application.DTOs.Auth;
+using TaskManagement.Application.DTOs.CategoryDtos;
 using TaskManagement.Application.DTOs.TaskDtos;
 using TaskManagement.Application.DTOs.UserDtos;
 using TaskManagement.Application.DTOs.UsersDto;
@@ -27,16 +28,22 @@ public class MappingProfile : Profile
                 dest => dest.CategoryId,
                 opt => opt.MapFrom(src => src.CategoryId));
 
-            CreateMap<TaskItem, TaskResponseDto>()
-         .ForMember(
-             dest => dest.CategoryName,
-             opt => opt.MapFrom(src => src.Category.Name))
-         .ForMember(
-             dest => dest.AssigneeName,
-             opt => opt.MapFrom(src => src.Users.Name));
+        CreateMap<TaskItem, TaskResponseDto>()
+            .ForMember(
+                dest => dest.CategoryName,
+                opt => opt.MapFrom(src => src.Category != null
+                    ? src.Category.Name
+                    : null))
+            .ForMember(
+                dest => dest.AssigneeName,
+                opt => opt.MapFrom(src => src.Users != null
+                    ? src.Users.Name
+                    : null));
 
         CreateMap<RegisterUserDto, User>();
 
         CreateMap<User, UserProfileDto>();
+
+        CreateMap<Category, CategoryResponseDto>();
     }
 }

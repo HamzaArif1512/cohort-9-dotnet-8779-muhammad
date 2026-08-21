@@ -21,36 +21,44 @@ public class GenericRepository<T, TKey> : IGenericRepository<T, TKey> where T : 
 
     public async Task<T?> GetByIdAsync(TKey id)
     {
+        ArgumentNullException.ThrowIfNull(id);
         return await _dbSet.FindAsync(id);
     }
 
     public async Task<IEnumerable<T>> GetAllAsync()
     {
+        ArgumentNullException.ThrowIfNull(_dbSet);
         return await _dbSet.ToListAsync();
     }
 
     public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate)
     {
+        ArgumentNullException.ThrowIfNull(_dbSet);
         return await _dbSet.Where(predicate).ToListAsync();
     }
 
     public async Task AddAsync(T entity)
     {
+        ArgumentNullException.ThrowIfNull(_dbSet);
+        ArgumentNullException.ThrowIfNull(entity);
         await _dbSet.AddAsync(entity);
     }
 
     public void Delete(T entity)
     {
+        ArgumentNullException.ThrowIfNull(entity);
         _dbSet.Remove(entity);
     }
 
     public void Update(T entity)
     {
+        ArgumentNullException.ThrowIfNull(entity);  
         _dbSet.Update(entity);
     }
 
     public async Task<bool> ExistsAsync(int id)
     {
+
         return await _dbSet.FindAsync(id) != null;
     }
 
@@ -77,9 +85,10 @@ public class GenericRepository<T, TKey> : IGenericRepository<T, TKey> where T : 
         _dbSet.RemoveRange(entities);
     }
 
-    public async Task<int> SaveChangesAsync(
+    public virtual async Task<int> SaveChangesAsync(
     CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(_context);
         return await _context.SaveChangesAsync(cancellationToken);
     }
 }

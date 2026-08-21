@@ -6,6 +6,11 @@ using TaskManagement.Application.DTOs.UserDtos;
 using TaskManagement.Domain.Entities;
 using TaskManagement.Domain.Enums;
 using TaskManagement.Application.Exceptions;
+using Microsoft.EntityFrameworkCore;
+
+
+
+
 
 namespace TaskManagement.Application.Services;
 
@@ -52,8 +57,9 @@ public class AuthService : IAuthService
 
         user.PasswordHash = _passwordHasher.HashPassword(user, request.Password);
 
-        await _userRepository.AddAsync(user);
-        await _userRepository.SaveChangesAsync();
+            await _userRepository.AddAsync(user);
+            await _userRepository.SaveChangesAsync();
+        
 
         return await _tokenService.GenerateTokensAsync(user);
     }
@@ -100,4 +106,5 @@ public class AuthService : IAuthService
         return await _tokenService.RevokeRefreshTokenAsync(
             dto.RefreshToken);
     }
+
 }
