@@ -107,9 +107,23 @@ namespace TaskManagement
 
             app.UseHttpsRedirection();
 
+            app.UseCors("Frontend");
+
             app.UseAuthentication();
 
             app.UseAuthorization();
+
+
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("Frontend", policy =>
+                {
+                    policy
+                        .WithOrigins("http://localhost:8443")
+                        .AllowAnyHeader()
+                        .AllowAnyMethod();
+                });
+            });
 
 
             app.MapControllers();
