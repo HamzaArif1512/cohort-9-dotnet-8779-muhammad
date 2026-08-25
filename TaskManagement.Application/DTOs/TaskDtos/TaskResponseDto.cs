@@ -12,7 +12,7 @@ public class TaskResponseDto
     public string Description { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; } 
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime DueDate { get; set; }
+    public DateTime? DueDate { get; set; }
     public TaskPriority Priority { get; set; }
     public TaskItemStatus Status { get; set; } 
     public string CategoryName { get; set; } = string.Empty;

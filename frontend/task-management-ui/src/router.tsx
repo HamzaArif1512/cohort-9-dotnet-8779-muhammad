@@ -8,7 +8,7 @@ import ProfilePage from "@/pages/ProfilePage"
 import AdminDashboardPage from "@/pages/AdminDashboardPage"
 import AdminTasksPage from "@/pages/AdminTasksPage"
 import ManageUsersPage from "@/pages/ManageUsersPage"
-import { useAuth } from "@/context/AuthContext"
+import { AuthUser, useAuth } from "@/context/AuthContext"
 
 // Thin wrapper rendered by the router — has full router context.
 // Keeps AuthPage free of router hooks so it renders safely anywhere.
@@ -20,13 +20,15 @@ function AuthRoute() {
     return <Navigate to={user.role === "admin" ? "/admin/dashboard" : "/user/dashboard"} replace />
   }
 
-  function handleAuthenticated(email: string) {
-    const isAdmin = email.toLowerCase().includes("admin")
-    const role = isAdmin ? "admin" : "user"
-    const fullName = isAdmin ? "Admin User" : "Jordan Lee"
-    login({ fullName, email, role })
-    navigate(isAdmin ? "/admin/dashboard" : "/user/dashboard")
-  }
+function handleAuthenticated(user: AuthUser) {
+  login(user)
+
+  navigate(
+    user.role === "admin"
+      ? "/admin/dashboard"
+      : "/user/dashboard",
+  )
+}
 
   return <AuthPage onAuthenticated={handleAuthenticated} />
 }

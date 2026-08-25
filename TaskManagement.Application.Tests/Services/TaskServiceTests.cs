@@ -441,8 +441,8 @@ public class TaskServiceTests
         var filters = new TaskSearchDto
         {
             Keyword = "database",
-            Status = TaskItemStatus.Pending,
-            Priority = TaskPriority.High
+            Statuses = new[] { TaskItemStatus.Pending },
+            Priorities = new[] { TaskPriority.High }
         };
 
         var tasks = new List<TaskItem>
@@ -649,7 +649,7 @@ public class TaskServiceTests
 
         var filters = new TaskSearchDto
         {
-            Status = TaskItemStatus.Completed
+            Statuses = new[] { TaskItemStatus.Completed }
         };
 
         var tasks = new List<TaskItem>();
@@ -674,7 +674,8 @@ public class TaskServiceTests
         _taskRepositoryMock.Verify(
             x => x.SearchAsync(
                 It.Is<TaskSearchDto>(f =>
-                    f.Status == TaskItemStatus.Completed),
+                    f.Statuses != null &&
+                    f.Statuses.Contains(TaskItemStatus.Completed)),
                 null,
                 It.IsAny<CancellationToken>()),
             Times.Once);
@@ -691,7 +692,7 @@ public class TaskServiceTests
 
         var filters = new TaskSearchDto
         {
-            Priority = TaskPriority.Critical
+            Priorities = new[] { TaskPriority.Critical }
         };
 
         var tasks = new List<TaskItem>();
@@ -716,13 +717,14 @@ public class TaskServiceTests
         _taskRepositoryMock.Verify(
             x => x.SearchAsync(
                 It.Is<TaskSearchDto>(f =>
-                    f.Priority == TaskPriority.Critical),
+                    f.Priorities != null &&
+                    f.Priorities.Contains(TaskPriority.Critical)),
                 null,
                 It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
-    //assignee filter test
+    // Assignee filter test
     [Fact]
     public async Task SearchTasks_WithAssignee_PassesAssigneeToRepository()
     {
@@ -735,7 +737,7 @@ public class TaskServiceTests
 
         var filters = new TaskSearchDto
         {
-            AssigneeId = assigneeId
+            AssigneeIds = new[] { assigneeId }
         };
 
         var tasks = new List<TaskItem>();
@@ -760,7 +762,8 @@ public class TaskServiceTests
         _taskRepositoryMock.Verify(
             x => x.SearchAsync(
                 It.Is<TaskSearchDto>(f =>
-                    f.AssigneeId == assigneeId),
+                    f.AssigneeIds != null &&
+                    f.AssigneeIds.Contains(assigneeId)),
                 null,
                 It.IsAny<CancellationToken>()),
             Times.Once);
@@ -827,10 +830,10 @@ public class TaskServiceTests
         var filters = new TaskSearchDto
         {
             Keyword = "API",
-            AssigneeId = assigneeId,
-            Status = TaskItemStatus.Pending,
-            Priority = TaskPriority.High,
-            CategoryId = 1,
+            AssigneeIds = new[] { assigneeId },
+            Statuses = new[] { TaskItemStatus.Pending },
+            Priorities = new[] { TaskPriority.High },
+            CategoryIds = new[] { 1 },
             DateDueFrom = new DateTime(2026, 8, 1),
             DateDueTo = new DateTime(2026, 8, 31)
         };
@@ -858,10 +861,14 @@ public class TaskServiceTests
             x => x.SearchAsync(
                 It.Is<TaskSearchDto>(f =>
                     f.Keyword == "API" &&
-                    f.AssigneeId == assigneeId &&
-                    f.Status == TaskItemStatus.Pending &&
-                    f.Priority == TaskPriority.High &&
-                    f.CategoryId == 1 &&
+                    f.AssigneeIds != null &&
+                    f.AssigneeIds.Contains(assigneeId) &&
+                    f.Statuses != null &&
+                    f.Statuses.Contains(TaskItemStatus.Pending) &&
+                    f.Priorities != null &&
+                    f.Priorities.Contains(TaskPriority.High) &&
+                    f.CategoryIds != null &&
+                    f.CategoryIds.Contains(1) &&
                     f.DateDueFrom == new DateTime(2026, 8, 1) &&
                     f.DateDueTo == new DateTime(2026, 8, 31)),
                 null,

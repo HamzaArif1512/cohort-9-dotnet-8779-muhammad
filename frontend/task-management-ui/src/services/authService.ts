@@ -1,48 +1,84 @@
 import apiClient from "./apiClient"
+import type { AuthUser, ProfileDto } from "@/types"
 
-export interface LoginRequest {
-  email: string
-  password: string
-}
-
-export interface AuthResponse {
+interface AuthResponseDto {
   accessToken: string
   refreshToken: string
   accessTokenExpiresAt: string
   refreshTokenExpiresAt: string
 }
 
+export const authService = {
+  async login(
+    email: string,
+    password: string,
+  ): Promise<AuthUser> {
+    const response = await apiClient.post<AuthResponseDto>(
+      "/Auth/login",
+      {
+        email,
+        password,
+      },
+    )
 
-export interface ProfileResponse {
-  id: string
-  fullName: string
-  email: string
-  role: string
-  isActive: boolean
-  createdAt: string
+    const {
+      accessToken,
+      refreshToken,
+      accessTokenExpiresAt,
+      refreshTokenExpiresAt,
+    } = response.data
+
+    localStorage.setItem("accessToken", accessToken)
+    localStorage.setItem("refreshToken", refreshToken)
+    localStorage.setItem(
+      "accessTokenExpiresAt",
+      accessTokenExpiresAt,
+    )
+    localStorage.setItem(
+      "refreshTokenExpiresAt",
+      refreshTokenExpiresAt,
+    )
+
+    const profileResponse =
+      await apiClient.get<ProfileDto>("/Profile")
+
+    const profile = profileResponse.data
+
+return {
+  fullName: profile.FullName,
+  email: profile.Email,
+  role: profile.Role.toLowerCase() === "admin"
+    ? "admin"
+    : "user",
 }
+  },
 
-export async function login(
-  credentials: LoginRequest,
-): Promise<AuthResponse> {
-  const response = await apiClient.post<AuthResponse>(
-    "/Auth/login",
-    credentials,
-  )
+  async register(
+    fullName: string,
+    email: string,
+    password: string,
+  ): Promise<void> {
+    await apiClient.post("/Auth/register", {
+      fullName,
+      email,
+      password,
+    })
+  },
 
-  localStorage.setItem("accessToken", response.data.accessToken)
-  localStorage.setItem("refreshToken", response.data.refreshToken)
-  
-  return response.data
-}
+  async logout(): Promise<void> {
+    const refreshToken = localStorage.getItem("refreshToken")
 
-export async function getProfile(): Promise<ProfileResponse> {
-const response = await apiClient.get<ProfileResponse>("/Auth/profile")
-return response.data
-}
-
-export async function logout(refreshToken: string): Promise<void> {
-  await apiClient.post("/Auth/logout", { refreshToken })
-  localStorage.removeItem("accessToken")
-  localStorage.removeItem("refreshToken")
+    try {
+      if (refreshToken) {
+        await apiClient.post("/Auth/logout", {
+          refreshToken,
+        })
+      }
+    } finally {
+      localStorage.removeItem("accessToken")
+      localStorage.removeItem("refreshToken")
+      localStorage.removeItem("accessTokenExpiresAt")
+      localStorage.removeItem("refreshTokenExpiresAt")
+    }
+  },
 }

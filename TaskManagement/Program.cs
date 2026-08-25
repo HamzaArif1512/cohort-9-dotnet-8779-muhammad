@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
+using TaskManagement.API;
 using TaskManagement.API.Extensions; //register middleware extension method
 using TaskManagement.Application;
 using TaskManagement.Application.Interfaces.Services;
@@ -69,7 +70,7 @@ namespace TaskManagement
 
             //Task Management
             builder.Services.AddHttpContextAccessor();
-            builder.Services.AddScoped<ICurrentUserService, ICurrentUserService>();
+            builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
             //enpoints, controllers, swagger, and other services
             builder.Services

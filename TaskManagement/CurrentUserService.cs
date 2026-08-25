@@ -4,11 +4,11 @@ using TaskManagement.Application.Interfaces.Services;
 
 namespace TaskManagement.API;
 
-public class CurrentUserServices
+public class CurrentUserService : ICurrentUserService
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public CurrentUserServices(IHttpContextAccessor httpContextAccessor)
+    public CurrentUserService(IHttpContextAccessor httpContextAccessor)
     {
         _httpContextAccessor = httpContextAccessor;
     }

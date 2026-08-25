@@ -180,7 +180,7 @@ public class TaskRepositoryTests
         result.Should().HaveCount(2);
     }
 
-    //Status filtering
+    // Status filtering
     [Fact]
     public async Task SearchAsync_WithStatus_ReturnsOnlyMatchingStatus()
     {
@@ -193,7 +193,7 @@ public class TaskRepositoryTests
 
         var filters = new TaskSearchDto
         {
-            Status = TaskItemStatus.Completed
+            Statuses = new[] { TaskItemStatus.Completed }
         };
 
         // Act
@@ -209,19 +209,20 @@ public class TaskRepositoryTests
             task.Status == TaskItemStatus.Completed);
     }
 
-    //priority filtering
+    // Priority filtering
     [Fact]
     public async Task SearchAsync_WithPriority_ReturnsOnlyMatchingPriority()
     {
         // Arrange
         await using var context = CreateDbContext();
+
         await SeedTasksAsync(context);
 
         var repository = new TaskRepository(context);
 
         var filters = new TaskSearchDto
         {
-            Priority = TaskPriority.High
+            Priorities = new[] { TaskPriority.High }
         };
 
         // Act
@@ -232,11 +233,12 @@ public class TaskRepositoryTests
 
         // Assert
         result.Should().HaveCount(1);
+
         result.Should().OnlyContain(task =>
             task.Priority == TaskPriority.High);
     }
 
-    //assignee filtering
+    // Assignee filtering
     [Fact]
     public async Task SearchAsync_WithAssignee_ReturnsOnlyAssignedTasks()
     {
@@ -252,7 +254,7 @@ public class TaskRepositoryTests
 
         var filters = new TaskSearchDto
         {
-            AssigneeId = user1.Id
+            AssigneeIds = new[] { user1.Id }
         };
 
         // Act
@@ -263,11 +265,12 @@ public class TaskRepositoryTests
 
         // Assert
         result.Should().HaveCount(2);
+
         result.Should().OnlyContain(task =>
             task.UserId == user1.Id);
     }
 
-    //category filtering
+    // Category filtering
     [Fact]
     public async Task SearchAsync_WithCategory_ReturnsOnlyMatchingCategory()
     {
@@ -283,7 +286,7 @@ public class TaskRepositoryTests
 
         var filters = new TaskSearchDto
         {
-            CategoryId = category.Id
+            CategoryIds = new[] { category.Id }
         };
 
         // Act
@@ -381,7 +384,7 @@ public class TaskRepositoryTests
         result.Should().HaveCount(3);
     }
 
-    //multiple filters
+    // multiple filters
     [Fact]
     public async Task SearchAsync_WithMultipleFilters_ReturnsOnlyMatchingTasks()
     {
@@ -398,10 +401,10 @@ public class TaskRepositoryTests
         var filters = new TaskSearchDto
         {
             Keyword = "API",
-            Status = targetTask.Status,
-            Priority = targetTask.Priority,
-            CategoryId = targetTask.CategoryId,
-            AssigneeId = targetTask.UserId
+            Statuses = new[] { targetTask.Status },
+            Priorities = new[] { targetTask.Priority },
+            CategoryIds = new[] { targetTask.CategoryId },
+            AssigneeIds = new[] { targetTask.UserId }
         };
 
         // Act

@@ -1,5 +1,8 @@
 import { useState, useCallback } from "react"
 import logoImg from "@/imports/logo__2_.png"
+import { ProfileDto } from "@/types"
+import type { AuthUser } from "@/context/AuthContext"
+import { authService } from "@/services/authService"
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -27,17 +30,6 @@ interface RegisterForm {
 
 interface FieldErrors {
   [key: string]: string
-}
-
-// ─── Auth Service (stub) ──────────────────────────────────────────────────────
-
-const authService = {
-  async login(_email: string, _password: string): Promise<void> {
-    await new Promise((r) => setTimeout(r, 1400))
-  },
-  async register(_fullName: string, _email: string, _password: string): Promise<void> {
-    await new Promise((r) => setTimeout(r, 1600))
-  },
 }
 
 // ─── Utilities ────────────────────────────────────────────────────────────────
@@ -135,7 +127,7 @@ function Field({
 
 // ─── Login Form ───────────────────────────────────────────────────────────────
 
-function LoginForm({ onSuccess }: { onSuccess: (msg: string, email: string) => void }) {
+function LoginForm({ onSuccess }: { onSuccess: (msg: string, user: AuthUser) => void }) {
   const [form, setForm] = useState<LoginForm>({ email: "", password: "" })
   const [errors, setErrors] = useState<FieldErrors>({})
   const [loading, setLoading] = useState(false)
@@ -162,8 +154,12 @@ function LoginForm({ onSuccess }: { onSuccess: (msg: string, email: string) => v
     setLoading(true)
     setServerError("")
     try {
-      await authService.login(form.email, form.password)
-      onSuccess("Signed in successfully. Welcome back!", form.email)
+  const user = await authService.login(form.email, form.password)
+
+  onSuccess(
+    "Signed in successfully. Welcome back!",
+    user,
+  )
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Unable to sign in. Please try again."
       setServerError(msg)
@@ -262,7 +258,7 @@ function PrimaryButton({ loading, loadingLabel, label }: { loading: boolean; loa
 
 // ─── Auth Page ────────────────────────────────────────────────────────────────
 
-export default function AuthPage({ onAuthenticated }: { onAuthenticated: (email: string) => void }) {
+export default function AuthPage({ onAuthenticated }: { onAuthenticated: (user: AuthUser) => void }) {
   const [tab, setTab] = useState<Tab>("login")
   const [toasts, setToasts] = useState<ToastItem[]>([])
 
@@ -280,10 +276,14 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated: (email:
     setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 200)
   }, [])
 
-  function handleSuccess(msg: string, email: string) {
-    addToast("success", msg)
-    setTimeout(() => onAuthenticated(email), 800)
-  }
+function handleLoginSuccess(msg: string, user: AuthUser) {
+  addToast("success", msg)
+  setTimeout(() => onAuthenticated(user), 800)
+}
+
+function handleRegisterSuccess(msg: string, email: string) {
+  addToast("success", msg)
+}
 
   return (
     <div className="h-full min-h-screen flex" style={{ background: "#F8F8F7" }}>
@@ -340,8 +340,8 @@ export default function AuthPage({ onAuthenticated }: { onAuthenticated: (email:
           {/* Form card */}
           <div className="rounded-[14px] border border-[#E5E5E5] bg-white p-7" style={{ boxShadow: "0 2px 16px rgba(0,0,0,0.06)" }}>
             {tab === "login"
-              ? <LoginForm onSuccess={handleSuccess} />
-              : <RegisterForm onSuccess={handleSuccess} />}
+              ? <LoginForm onSuccess={handleLoginSuccess} />
+              : <RegisterForm onSuccess={handleRegisterSuccess} />}
           </div>
 
           {/* Footer */}

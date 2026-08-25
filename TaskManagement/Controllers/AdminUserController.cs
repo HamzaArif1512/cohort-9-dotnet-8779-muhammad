@@ -48,4 +48,20 @@ public class AdminUserController : ControllerBase
         return CreatedAtAction(nameof(GetUser), new { userId = user.Id }, user);
     }
 
+
+    [HttpGet("{userId:guid}/tasks")]
+    [ProducesResponseType(
+        typeof(IEnumerable<AdminUserTaskDto>),
+        StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetUserTasks(
+        Guid userId,
+        CancellationToken cancellationToken)
+    {
+        var tasks = await _adminUserService.GetUserTasksAsync(
+            userId,
+            cancellationToken);
+
+        return Ok(tasks);
+    }
 }

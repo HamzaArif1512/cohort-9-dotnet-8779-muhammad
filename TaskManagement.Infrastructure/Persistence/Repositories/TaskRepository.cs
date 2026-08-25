@@ -64,27 +64,30 @@ public class TaskRepository : GenericRepository<TaskItem, Guid>, ITaskRepository
         if (!string.IsNullOrWhiteSpace(filters.Keyword))
         {
             var keyword = filters.Keyword.Trim();
-            query = query.Where(t => t.Title.Contains(keyword) || (t.Description != null && t.Description.Contains(keyword) || t.Users.Name.Contains(keyword)));
+            query = query.Where(t =>
+                t.Title.Contains(keyword) ||
+                (t.Description != null && t.Description.Contains(keyword)) ||
+                t.Users.Name.Contains(keyword));
         }
 
-        if (filters.AssigneeId.HasValue)
+        if (filters.AssigneeIds is { Length: > 0 })
         {
-            query = query.Where(t => t.UserId == filters.AssigneeId.Value);
+            query = query.Where(t => filters.AssigneeIds.Contains(t.UserId));
         }
 
-        if (filters.Status.HasValue)
+        if (filters.Statuses is { Length: > 0 })
         {
-            query = query.Where(t => t.Status == filters.Status.Value);
+            query = query.Where(t => filters.Statuses.Contains(t.Status));
         }
 
-        if (filters.Priority.HasValue)
+        if (filters.Priorities is { Length: > 0 })
         {
-            query = query.Where(t => t.Priority == filters.Priority.Value);
+            query = query.Where(t => filters.Priorities.Contains(t.Priority));
         }
 
-        if (filters.CategoryId.HasValue)
+        if (filters.CategoryIds is { Length: > 0 })
         {
-            query = query.Where(t => t.CategoryId == filters.CategoryId.Value);
+            query = query.Where(t => filters.CategoryIds.Contains(t.CategoryId));
         }
 
         if (filters.DateDueFrom.HasValue)

@@ -1,5 +1,6 @@
 using AutoMapper;
 using TaskManagement.Application.DTOs.Auth;
+using TaskManagement.Application.DTOs.CategoryDtos;
 using TaskManagement.Application.DTOs.TaskDtos;
 using TaskManagement.Application.DTOs.UserDtos;
 using TaskManagement.Application.DTOs.UsersDto;
@@ -38,5 +39,7 @@ public class MappingProfile : Profile
         CreateMap<RegisterUserDto, User>();
 
         CreateMap<User, UserProfileDto>();
+
+        CreateMap<Category, CategoryResponseDto>();
     }
 }

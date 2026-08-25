@@ -36,11 +36,11 @@ export interface Task {
   description: string
   status: TaskStatus
   priority: TaskPriority
-  category: string
-  assignee: string
-  dueDate: string   // ISO date string
-  createdAt: string // ISO date string
-  updatedAt: string // ISO date string
+  categoryName: string
+  assigneeName: string
+  dueDate: string
+  createdAt: string
+  updatedAt: string
 }
 
 // ─── Task filter / search state (mirrors TaskSearchDto) ───────────────────────
