@@ -36,25 +36,40 @@ function mapTask(response: TaskResponseDto): Task {
     description: response.description,
     status: response.status,
     priority: response.priority,
-    category: response.categoryName,
-    assignee: response.assigneeName,
+    categoryName: response.categoryName,
+    assigneeName: response.assigneeName,
     dueDate: response.dueDate,
     createdAt: response.createdAt,
     updatedAt: response.updatedAt,
   }
 }
 
-export const TASK_CATEGORIES = [
-  "Backend",
-  "Database",
-  "Design",
-  "Development",
-  "DevOps",
-  "Documentation",
-  "Frontend",
-  "Security",
-  "Testing",
-]
+export interface CategoryDto {
+  id: number
+  name: string
+}
+
+interface BackendCategoryDto {
+  id: number
+  name: string
+}
+
+function mapCategory(
+  category: BackendCategoryDto,
+): CategoryDto {
+  return {
+    id: category.id,
+    name: category.name,
+  }
+}
+
+export async function getCategories(): Promise<CategoryDto[]> {
+  const response = await apiClient.get<BackendCategoryDto[]>(
+    "/Categories",
+  )
+
+  return response.data.map(mapCategory)
+}
 
 export async function getTasks(
   params: GetTasksParams,
@@ -94,7 +109,7 @@ export async function getTasks(
 
   if (filters.category.length > 0) {
     tasks = tasks.filter((task) =>
-      filters.category.includes(task.category),
+      filters.category.includes(task.categoryName),
     )
   }
 

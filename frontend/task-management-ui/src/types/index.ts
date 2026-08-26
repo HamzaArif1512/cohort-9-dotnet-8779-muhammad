@@ -1,33 +1,31 @@
 // ─── Dashboard DTO ────────────────────────────────────────────────────────────
 
-export interface TaskByStatusDto {
-  Pending: number
-  InProgress: number
-  Completed: number
+export interface TaskStatusSummaryDto {
+  status: TaskStatus
+  count: number
 }
 
-export interface TaskByPriorityDto {
-  Low: number
-  Medium: number
-  High: number
+export interface TaskPrioritySummaryDto {
+  priority: TaskPriority
+  count: number
 }
 
 export interface UserDashboardDto {
-  TotalTasks: number
-  PendingTasks: number
-  InProgressTasks: number
-  CompletedTasks: number
-  OverdueTasks: number
-  DueSoonTasks: number
-  HighPriorityTasks: number
-  CompletionRate: number
-  TaskByStatus: TaskByStatusDto
-  TaskByPriority: TaskByPriorityDto
+  totalTasks: number
+  pendingTasks: number
+  inProgressTasks: number
+  completedTasks: number
+  overdueTasks: number
+  dueSoonTasks: number
+  highPriorityTasks: number
+  completionRate: number
+  taskByStatus: TaskStatusSummaryDto[]
+  taskByPriority: TaskPrioritySummaryDto[]
 }
 
 // ─── Tasks ────────────────────────────────────────────────────────────────────
 
-export type TaskStatus = "Pending" | "InProgress" | "Completed"
+export type TaskStatus = "Pending" | "InProgress" | "Completed" 
 export type TaskPriority = "Low" | "Medium" | "High"
 
 export interface Task {
@@ -73,34 +71,35 @@ export interface GetTasksResult {
 
 // ─── Admin Dashboard DTO ──────────────────────────────────────────────────────
 
-export interface AssigneeTaskCount {
-  AssigneeName: string
-  TaskCount: number
+export interface TaskAssigneeSummaryDto {
+  userId: string
+  userName: string
+  taskCount: number
 }
 
 export interface AdminDashboardDto {
-  TotalUsers: number
-  ActiveAssignees: number
-  TotalTasks: number
-  PendingTasks: number
-  InProgressTasks: number
-  CompletedTasks: number
-  OverdueTasks: number
-  DueSoonTasks: number
-  HighPriorityTasks: number
-  CompletionRate: number
-  TaskByStatus: TaskByStatusDto
-  TaskByPriority: TaskByPriorityDto
-  TaskByAssignee: AssigneeTaskCount[]
+  totalUsers: number
+  activeAssignees: number
+  totalTasks: number
+  pendingTasks: number
+  inProgressTasks: number
+  completedTasks: number
+  overdueTasks: number
+  dueSoonTasks: number
+  highPriorityTasks: number
+  completionRate: number
+  taskByStatus: TaskStatusSummaryDto[]
+  taskByPriority: TaskPrioritySummaryDto[]
+  taskByAssignee: TaskAssigneeSummaryDto[]
 }
 
 // ─── Profile ──────────────────────────────────────────────────────────────────
-
 export interface ProfileDto {
-  FullName: string
-  Email: string
-  Role: string
-  CreatedAt: string // ISO date string
+  id: string
+  fullName: string
+  email: string
+  role: string
+  createdAt: string
 }
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import type { AdminDashboardDto } from "@/types"
+import type { AdminDashboardDto, TaskPriority, TaskStatus } from "@/types"
 import { getAdminDashboard } from "@/services/dashboardService"
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
@@ -309,13 +309,23 @@ function SegmentedBar({ segments }: { segments: BarSegment[] }) {
   )
 }
 
-function TaskStatusChart({ data }: { data: AdminDashboardDto["TaskByStatus"] }) {
-  const total = data.Pending + data.InProgress + data.Completed
+function TaskStatusChart({ data }: { data: AdminDashboardDto["taskByStatus"] }) {
+  const statusCounts: Record<TaskStatus, number> = {
+    Pending: 0,
+    InProgress: 0,
+    Completed: 0,
+  }
+
+  for (const item of data) {
+    statusCounts[item.status] = item.count
+  }
+
+  const total = statusCounts.Pending + statusCounts.InProgress + statusCounts.Completed
   const isEmpty = total === 0
   const segments: BarSegment[] = [
-    { label: "Pending", value: data.Pending, color: C.secondary },
-    { label: "In Progress", value: data.InProgress, color: C.primary },
-    { label: "Completed", value: data.Completed, color: C.success },
+    { label: "Pending", value: statusCounts.Pending, color: C.secondary },
+    { label: "In Progress", value: statusCounts.InProgress, color: C.primary },
+    { label: "Completed", value: statusCounts.Completed, color: C.success },
   ]
   return (
     <div className="bg-white rounded-[12px] border p-6 flex flex-col gap-5 h-full" style={{ borderColor: C.border, boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
@@ -372,8 +382,18 @@ function PriorityRow({ label, value, total, color, bg }: { label: string; value:
   )
 }
 
-function TaskPriorityChart({ data }: { data: AdminDashboardDto["TaskByPriority"] }) {
-  const total = data.Low + data.Medium + data.High
+function TaskPriorityChart({ data }: { data: AdminDashboardDto["taskByPriority"] }) {
+  const priorityCounts: Record<TaskPriority, number> = {
+    Low: 0,
+    Medium: 0,
+    High: 0,
+  }
+
+  for (const item of data) {
+    priorityCounts[item.priority] = item.count
+  }
+
+  const total = priorityCounts.Low + priorityCounts.Medium + priorityCounts.High
   const isEmpty = total === 0
   return (
     <div className="bg-white rounded-[12px] border p-6" style={{ borderColor: C.border, boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
@@ -387,9 +407,9 @@ function TaskPriorityChart({ data }: { data: AdminDashboardDto["TaskByPriority"]
         </div>
       ) : (
         <div className="flex flex-col gap-4">
-          <PriorityRow label="High" value={data.High} total={total} color={C.error} bg={C.errorLight} />
-          <PriorityRow label="Medium" value={data.Medium} total={total} color={C.warning} bg={C.warningLight} />
-          <PriorityRow label="Low" value={data.Low} total={total} color={C.textMuted} bg="#F5F5F5" />
+          <PriorityRow label="High" value={priorityCounts.High} total={total} color={C.error} bg={C.errorLight} />
+          <PriorityRow label="Medium" value={priorityCounts.Medium} total={total} color={C.warning} bg={C.warningLight} />
+          <PriorityRow label="Low" value={priorityCounts.Low} total={total} color={C.textMuted} bg="#F5F5F5" />
         </div>
       )}
     </div>
@@ -398,7 +418,7 @@ function TaskPriorityChart({ data }: { data: AdminDashboardDto["TaskByPriority"]
 
 // ─── Assignee workload chart ──────────────────────────────────────────────────
 
-function AssigneeWorkloadChart({ data }: { data: AdminDashboardDto["TaskByAssignee"] }) {
+function AssigneeWorkloadChart({ data }: { data: AdminDashboardDto["taskByAssignee"] }) {
   if (data.length === 0) {
     return (
       <div className="bg-white rounded-[12px] border p-6 flex flex-col items-center justify-center text-center py-10" style={{ borderColor: C.border, boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
@@ -408,8 +428,8 @@ function AssigneeWorkloadChart({ data }: { data: AdminDashboardDto["TaskByAssign
     )
   }
 
-  const sorted = [...data].sort((a, b) => b.TaskCount - a.TaskCount)
-  const max = sorted[0].TaskCount
+  const sorted = [...data].sort((a, b) => b.taskCount - a.taskCount)
+  const max = sorted[0].taskCount
 
   return (
     <div className="bg-white rounded-[12px] border p-6" style={{ borderColor: C.border, boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
@@ -423,17 +443,17 @@ function AssigneeWorkloadChart({ data }: { data: AdminDashboardDto["TaskByAssign
       </div>
 
       <div className="flex flex-col gap-3">
-        {sorted.map(({ AssigneeName, TaskCount }) => {
-          const pct = max > 0 ? (TaskCount / max) * 100 : 0
-          const isTop = TaskCount === max
+        {sorted.map(({ userName, taskCount }) => {
+          const pct = max > 0 ? (taskCount / max) * 100 : 0
+          const isTop = taskCount === max
           return (
-            <div key={AssigneeName} className="flex items-center gap-3">
+            <div key={userName} className="flex items-center gap-3">
               <span
                 className="text-[13px] w-28 shrink-0 truncate"
                 style={{ fontFamily: "'Archivo', sans-serif", color: C.textSecondary }}
-                title={AssigneeName}
+                title={userName}
               >
-                {AssigneeName}
+                {userName}
               </span>
               <div className="flex-1 h-2.5 rounded-full overflow-hidden" style={{ background: "#F0F0EF" }}>
                 <div
@@ -445,7 +465,7 @@ function AssigneeWorkloadChart({ data }: { data: AdminDashboardDto["TaskByAssign
                 className="text-[13px] font-semibold w-5 text-right shrink-0"
                 style={{ fontFamily: "'Archivo', sans-serif", color: isTop ? C.primary : C.text }}
               >
-                {TaskCount}
+                {taskCount}
               </span>
             </div>
           )
@@ -575,7 +595,7 @@ export default function AdminDashboardPage() {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <MetricCard
                 label="Total Users"
-                value={data.TotalUsers}
+                value={data.totalUsers}
                 icon={<IconUsers />}
                 accentColor={C.primary}
                 iconBg={C.primaryLight}
@@ -583,7 +603,7 @@ export default function AdminDashboardPage() {
               />
               <MetricCard
                 label="Active Assignees"
-                value={data.ActiveAssignees}
+                value={data.activeAssignees}
                 icon={<IconActiveUsers />}
                 accentColor="#6b32cc"
                 iconBg="#EDE4FC"
@@ -591,7 +611,7 @@ export default function AdminDashboardPage() {
               />
               <MetricCard
                 label="Total Tasks"
-                value={data.TotalTasks}
+                value={data.totalTasks}
                 icon={<IconTotal />}
                 accentColor={C.textSecondary}
                 iconBg="#F5F5F5"
@@ -599,7 +619,7 @@ export default function AdminDashboardPage() {
               />
               <MetricCard
                 label="Completion Rate"
-                value={`${Math.round(data.CompletionRate)}%`}
+                value={`${Math.round(data.completionRate)}%`}
                 icon={<IconPercent />}
                 accentColor={C.success}
                 iconBg={C.successLight}
@@ -611,7 +631,7 @@ export default function AdminDashboardPage() {
             <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
               <CompactCard
                 label="Pending"
-                value={data.PendingTasks}
+                value={data.pendingTasks}
                 icon={<IconPending />}
                 accentColor="#92400e"
                 accentBg={C.secondaryLight}
@@ -619,7 +639,7 @@ export default function AdminDashboardPage() {
               />
               <CompactCard
                 label="In Progress"
-                value={data.InProgressTasks}
+                value={data.inProgressTasks}
                 icon={<IconInProgress />}
                 accentColor={C.primary}
                 accentBg={C.primaryLight}
@@ -627,7 +647,7 @@ export default function AdminDashboardPage() {
               />
               <CompactCard
                 label="Completed"
-                value={data.CompletedTasks}
+                value={data.completedTasks}
                 icon={<IconCompleted />}
                 accentColor={C.success}
                 accentBg={C.successLight}
@@ -635,7 +655,7 @@ export default function AdminDashboardPage() {
               />
               <CompactCard
                 label="Overdue"
-                value={data.OverdueTasks}
+                value={data.overdueTasks}
                 icon={<IconOverdue />}
                 accentColor={C.error}
                 accentBg={C.errorLight}
@@ -643,7 +663,7 @@ export default function AdminDashboardPage() {
               />
               <CompactCard
                 label="Due Soon"
-                value={data.DueSoonTasks}
+                value={data.dueSoonTasks}
                 icon={<IconDueSoon />}
                 accentColor="#92400e"
                 accentBg={C.secondaryLight}
@@ -651,7 +671,7 @@ export default function AdminDashboardPage() {
               />
               <CompactCard
                 label="High Priority"
-                value={data.HighPriorityTasks}
+                value={data.highPriorityTasks}
                 icon={<IconHighPriority />}
                 accentColor="#7c3aed"
                 accentBg="#F5EEFF"
@@ -661,14 +681,14 @@ export default function AdminDashboardPage() {
 
             {/* Row 3 — Completion rate + Status distribution */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <CompletionRateCard rate={data.CompletionRate} total={data.TotalTasks} />
-              <TaskStatusChart data={data.TaskByStatus} />
+              <CompletionRateCard rate={data.completionRate} total={data.totalTasks} />
+              <TaskStatusChart data={data.taskByStatus} />
             </div>
 
             {/* Row 4 — Priority distribution + Assignee workload */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <TaskPriorityChart data={data.TaskByPriority} />
-              <AssigneeWorkloadChart data={data.TaskByAssignee} />
+              <TaskPriorityChart data={data.taskByPriority} />
+              <AssigneeWorkloadChart data={data.taskByAssignee} />
             </div>
 
           </div>

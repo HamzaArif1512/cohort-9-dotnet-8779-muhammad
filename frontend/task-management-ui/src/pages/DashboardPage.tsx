@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import type { UserDashboardDto } from "@/types"
+import type { TaskPriority, TaskStatus, UserDashboardDto } from "@/types"
 import { getUserDashboard } from "@/services/dashboardService"
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
@@ -310,14 +310,24 @@ function SegmentedBar({ segments }: { segments: BarSegment[] }) {
 
 // ─── Task Status Chart ────────────────────────────────────────────────────────
 
-function TaskStatusChart({ data }: { data: UserDashboardDto["TaskByStatus"] }) {
-  const total = data.Pending + data.InProgress + data.Completed
+function TaskStatusChart({ data }: { data: UserDashboardDto["taskByStatus"] }) {
+  const statusCounts: Record<TaskStatus, number> = {
+    Pending: 0,
+    InProgress: 0,
+    Completed: 0,
+  }
+
+  for (const item of data) {
+    statusCounts[item.status] = item.count
+  }
+
+  const total = statusCounts.Pending + statusCounts.InProgress + statusCounts.Completed
   const isEmpty = total === 0
 
   const segments: BarSegment[] = [
-    { label: "Pending", value: data.Pending, color: C.secondary },
-    { label: "In Progress", value: data.InProgress, color: C.primary },
-    { label: "Completed", value: data.Completed, color: C.success },
+    { label: "Pending", value: statusCounts.Pending, color: C.secondary },
+    { label: "In Progress", value: statusCounts.InProgress, color: C.primary },
+    { label: "Completed", value: statusCounts.Completed, color: C.success },
   ]
 
   return (
@@ -428,8 +438,18 @@ function PriorityBar({
   )
 }
 
-function TaskPriorityChart({ data }: { data: UserDashboardDto["TaskByPriority"] }) {
-  const total = data.Low + data.Medium + data.High
+function TaskPriorityChart({ data }: { data: UserDashboardDto["taskByPriority"] }) {
+  const priorityCounts: Record<TaskPriority, number> = {
+    Low: 0,
+    Medium: 0,
+    High: 0,
+  }
+
+  for (const item of data) {
+    priorityCounts[item.priority] = item.count
+  }
+
+  const total = priorityCounts.Low + priorityCounts.Medium + priorityCounts.High
   const isEmpty = total === 0
 
   return (
@@ -458,9 +478,9 @@ function TaskPriorityChart({ data }: { data: UserDashboardDto["TaskByPriority"] 
         </div>
       ) : (
         <div className="flex flex-col gap-4">
-          <PriorityBar label="High" value={data.High} total={total} color={C.error} bg={C.errorLight} />
-          <PriorityBar label="Medium" value={data.Medium} total={total} color={C.warning} bg={C.warningLight} />
-          <PriorityBar label="Low" value={data.Low} total={total} color={C.textMuted} bg="#F5F5F5" />
+          <PriorityBar label="High" value={priorityCounts.High} total={total} color={C.error} bg={C.errorLight} />
+          <PriorityBar label="Medium" value={priorityCounts.Medium} total={total} color={C.warning} bg={C.warningLight} />
+          <PriorityBar label="Low" value={priorityCounts.Low} total={total} color={C.textMuted} bg="#F5F5F5" />
         </div>
       )}
     </div>
@@ -590,7 +610,7 @@ export default function DashboardPage() {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <TaskSummaryCard
                 label="Total Tasks"
-                value={data.TotalTasks}
+                value={data.totalTasks}
                 icon={<IconTotal />}
                 accentColor={C.primary}
                 accentBg={C.primaryLight}
@@ -598,7 +618,7 @@ export default function DashboardPage() {
               />
               <TaskSummaryCard
                 label="Pending"
-                value={data.PendingTasks}
+                value={data.pendingTasks}
                 icon={<IconPending />}
                 accentColor={C.secondary}
                 accentBg={C.secondaryLight}
@@ -606,7 +626,7 @@ export default function DashboardPage() {
               />
               <TaskSummaryCard
                 label="In Progress"
-                value={data.InProgressTasks}
+                value={data.inProgressTasks}
                 icon={<IconInProgress />}
                 accentColor={C.primary}
                 accentBg={C.primaryLight}
@@ -614,7 +634,7 @@ export default function DashboardPage() {
               />
               <TaskSummaryCard
                 label="Completed"
-                value={data.CompletedTasks}
+                value={data.completedTasks}
                 icon={<IconCompleted />}
                 accentColor={C.success}
                 accentBg={C.successLight}
@@ -626,7 +646,7 @@ export default function DashboardPage() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <AttentionMetricCard
                 label="Overdue"
-                value={data.OverdueTasks}
+                value={data.overdueTasks}
                 icon={<IconOverdue />}
                 accentColor={C.error}
                 accentBg={C.errorLight}
@@ -634,7 +654,7 @@ export default function DashboardPage() {
               />
               <AttentionMetricCard
                 label="Due Soon"
-                value={data.DueSoonTasks}
+                value={data.dueSoonTasks}
                 icon={<IconDueSoon />}
                 accentColor={C.warning}
                 accentBg={C.warningLight}
@@ -642,7 +662,7 @@ export default function DashboardPage() {
               />
               <AttentionMetricCard
                 label="High Priority"
-                value={data.HighPriorityTasks}
+                value={data.highPriorityTasks}
                 icon={<IconHighPriority />}
                 accentColor="#9B59B6"
                 accentBg="#F5EEFF"
@@ -652,12 +672,12 @@ export default function DashboardPage() {
 
             {/* Completion + status — 2 columns */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <CompletionRateCard rate={data.CompletionRate} total={data.TotalTasks} />
-              <TaskStatusChart data={data.TaskByStatus} />
+              <CompletionRateCard rate={data.completionRate} total={data.totalTasks} />
+              <TaskStatusChart data={data.taskByStatus} />
             </div>
 
             {/* Priority distribution — full width */}
-            <TaskPriorityChart data={data.TaskByPriority} />
+            <TaskPriorityChart data={data.taskByPriority} />
 
           </div>
         ) : null}

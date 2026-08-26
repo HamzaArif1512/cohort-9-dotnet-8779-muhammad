@@ -97,22 +97,52 @@ function ToastList({ toasts, onDismiss }: { toasts: ToastItem[]; onDismiss: (id:
 // ─── Field ───────────────────────────────────────────────────────────────────
 
 function Field({
-  label, id, type = "text", value, onChange, error, placeholder, disabled, autoComplete,
+  label, id, type = "text", value, onChange, error, placeholder, disabled, autoComplete, showToggle,
 }: {
   label: string; id: string; type?: string; value: string; onChange: (v: string) => void
-  error?: string; placeholder?: string; disabled?: boolean; autoComplete?: string
+  error?: string; placeholder?: string; disabled?: boolean; autoComplete?: string; showToggle?: boolean
 }) {
+  const [visible, setVisible] = useState(false)
+  const canToggle = type === "password" && !!showToggle
+  const inputType = canToggle && visible ? "text" : type
+
   return (
     <div className="flex flex-col gap-1.5">
       <label htmlFor={id} className="text-[13px] font-medium text-[#111111]" style={{ fontFamily: "'Archivo', sans-serif" }}>
         {label}
       </label>
-      <input
-        id={id} type={type} value={value} onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder} disabled={disabled} autoComplete={autoComplete}
-        className={`h-10 w-full rounded-[8px] border px-3 text-sm text-[#111111] bg-white placeholder:text-[#c0c0c0] outline-none transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed ${error ? "border-[#c0392b] ring-2 ring-[#c0392b]/15" : "border-[#E5E5E5] focus:border-[#7F40E4] focus:ring-2 focus:ring-[#7F40E4]/15"}`}
-        style={{ fontFamily: "'Jost', sans-serif" }}
-      />
+      <div className="relative">
+        <input
+          id={id} type={inputType} value={value} onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder} disabled={disabled} autoComplete={autoComplete}
+          className={`h-10 w-full rounded-[8px] border px-3 text-sm text-[#111111] bg-white placeholder:text-[#c0c0c0] outline-none transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed ${canToggle ? "pr-10" : ""} ${error ? "border-[#c0392b] ring-2 ring-[#c0392b]/15" : "border-[#E5E5E5] focus:border-[#7F40E4] focus:ring-2 focus:ring-[#7F40E4]/15"}`}
+          style={{ fontFamily: "'Jost', sans-serif" }}
+        />
+        {canToggle && (
+          <button
+            type="button"
+            onClick={() => setVisible((v) => !v)}
+            disabled={disabled}
+            className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 flex items-center justify-center rounded-[6px] text-[#8A8A8A] hover:text-[#5F5F5F] hover:bg-[#F5F5F5] transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+            aria-label={visible ? "Hide password" : "Show password"}
+            aria-pressed={visible}
+          >
+            {visible ? (
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                <path d="M3 3l14 14" />
+                <path d="M8.45 8.45A3 3 0 0011.55 11.55" />
+                <path d="M6.85 6.85A8.55 8.55 0 002.4 10s2.6 4.5 7.6 4.5a8.2 8.2 0 003.2-.62" />
+                <path d="M12.9 12.9A8.55 8.55 0 0017.6 10S15 5.5 10 5.5c-.58 0-1.13.06-1.65.17" />
+              </svg>
+            ) : (
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                <path d="M2.4 10S5 5.5 10 5.5 17.6 10 17.6 10 15 14.5 10 14.5 2.4 10 2.4 10z" />
+                <circle cx="10" cy="10" r="2.5" />
+              </svg>
+            )}
+          </button>
+        )}
+      </div>
       {error && (
         <p className="text-[12px] text-[#c0392b] flex items-center gap-1" style={{ fontFamily: "'Jost', sans-serif" }} role="alert">
           <svg viewBox="0 0 16 16" fill="currentColor" className="w-3 h-3 shrink-0">
@@ -176,7 +206,7 @@ function LoginForm({ onSuccess }: { onSuccess: (msg: string, user: AuthUser) => 
         </div>
       )}
       <Field id="login-email" label="Email Address" type="email" value={form.email} onChange={(v) => set("email", v)} error={errors.email} placeholder="you@example.com" disabled={loading} autoComplete="email" />
-      <Field id="login-password" label="Password" type="password" value={form.password} onChange={(v) => set("password", v)} error={errors.password} placeholder="Enter your password" disabled={loading} autoComplete="current-password" />
+      <Field id="login-password" label="Password" type="password" value={form.password} onChange={(v) => set("password", v)} error={errors.password} placeholder="Enter your password" disabled={loading} autoComplete="current-password" showToggle />
       <PrimaryButton loading={loading} loadingLabel="Signing in…" label="Sign In" />
     </form>
   )
@@ -216,7 +246,7 @@ function RegisterForm({ onSuccess }: { onSuccess: (msg: string, email: string) =
     setLoading(true)
     setServerError("")
     try {
-      await authService.register(form.fullName, form.email, form.password)
+      await authService.register(form.fullName, form.email, form.password, form.confirmPassword)
       onSuccess("Account created successfully. Welcome to Avian!", form.email)
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Registration failed. Please try again."
@@ -235,8 +265,8 @@ function RegisterForm({ onSuccess }: { onSuccess: (msg: string, email: string) =
       )}
       <Field id="reg-fullname" label="Full Name" value={form.fullName} onChange={(v) => set("fullName", v)} error={errors.fullName} placeholder="Jane Smith" disabled={loading} autoComplete="name" />
       <Field id="reg-email" label="Email Address" type="email" value={form.email} onChange={(v) => set("email", v)} error={errors.email} placeholder="you@example.com" disabled={loading} autoComplete="email" />
-      <Field id="reg-password" label="Create Password" type="password" value={form.password} onChange={(v) => set("password", v)} error={errors.password} placeholder="Min. 8 characters" disabled={loading} autoComplete="new-password" />
-      <Field id="reg-confirm" label="Confirm Password" type="password" value={form.confirmPassword} onChange={(v) => set("confirmPassword", v)} error={errors.confirmPassword} placeholder="Re-enter your password" disabled={loading} autoComplete="new-password" />
+      <Field id="reg-password" label="Create Password" type="password" value={form.password} onChange={(v) => set("password", v)} error={errors.password} placeholder="Min. 8 characters" disabled={loading} autoComplete="new-password" showToggle />
+      <Field id="reg-confirm" label="Confirm Password" type="password" value={form.confirmPassword} onChange={(v) => set("confirmPassword", v)} error={errors.confirmPassword} placeholder="Re-enter your password" disabled={loading} autoComplete="new-password" showToggle />
       <PrimaryButton loading={loading} loadingLabel="Creating account…" label="Create Account" />
     </form>
   )

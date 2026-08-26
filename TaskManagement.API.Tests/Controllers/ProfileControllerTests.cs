@@ -29,7 +29,6 @@ public class ProfileControllerTests
             FullName = "Hamza Arif",
             Email = "hamza@example.com",
             Role = "User",
-            IsActive = true,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -63,7 +62,6 @@ public class ProfileControllerTests
             FullName = "Hamza Arif",
             Email = "hamza@example.com",
             Role = "User",
-            IsActive = true,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -100,7 +98,6 @@ public class ProfileControllerTests
             FullName = "Hamza Arif",
             Email = "hamza@example.com",
             Role = "User",
-            IsActive = true,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -127,7 +124,6 @@ public class ProfileControllerTests
             FullName = "Admin User",
             Email = "admin@example.com",
             Role = "Admin",
-            IsActive = true,
             CreatedAt = new DateTime(
                 2026,
                 1,

@@ -8,6 +8,5 @@ public enum TaskItemStatus
 {
     Pending = 1,
     InProgress = 2,
-    Completed = 3,
-    Canceled = 4
+    Completed = 3
 }

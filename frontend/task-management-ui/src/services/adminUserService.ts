@@ -1,36 +1,35 @@
 import apiClient from "./apiClient"
-import type { TaskStatus } from "@/types"
+import type { TaskPriority, TaskStatus } from "@/types"
 
-// Backend DTOs
-interface AdminUserListDto {
-  Id: string
-  Name: string
-  Email: string
-  CreatedAt: string
-  TaskCount: number
+interface BackendAdminUserListDto {
+  id: string
+  name: string
+  email: string
+  createdAt: string
+  taskCount: number
 }
 
 interface BackendAdminUserDetailsDto {
-  Id: string
-  Name: string
-  Email: string
-  CreatedAt: string
-  TaskCount: number
-  PendingTasks: number
-  InProgressTasks: number
-  CompletedTasks: number
-  OverdueTasks: number
+  id: string
+  name: string
+  email: string
+  createdAt: string
+  taskCount: number
+  pendingTasks: number
+  inProgressTasks: number
+  completedTasks: number
+  overdueTasks: number
 }
 
 interface BackendAdminUserTaskDto {
-  Id: string
-  Title: string
-  Description: string | null
-  Status: TaskStatus
-  Priority: TaskPriority
-  DueDate: string | null
-  CategoryId: number | null
-  CategoryName: string | null
+  id: string
+  title: string
+  description: string | null
+  status: TaskStatus
+  priority: TaskPriority
+  dueDate: string | null
+  categoryId: number | null
+  categoryName: string | null
 }
 
 interface CreateAdminUserDto {
@@ -39,7 +38,6 @@ interface CreateAdminUserDto {
   Password: string
 }
 
-// Frontend DTOs
 export interface AdminUserDto {
   id: string
   name: string
@@ -76,53 +74,25 @@ export interface CreateUserPayload {
   password: string
 }
 
-// Mapping
-function mapAdminUser(user: AdminUserListDto): AdminUserDto {
-  return {
-    id: user.Id,
-    name: user.Name,
-    email: user.Email,
-    createdAt: user.CreatedAt,
-    taskCount: user.TaskCount,
-  }
-}
-
-function mapAdminUserDetails(
-  user: BackendAdminUserDetailsDto,
-): AdminUserDetailsDto {
-  return {
-    id: user.Id,
-    name: user.Name,
-    email: user.Email,
-    createdAt: user.CreatedAt,
-    taskCount: user.TaskCount,
-    pendingTasks: user.PendingTasks,
-    inProgressTasks: user.InProgressTasks,
-    completedTasks: user.CompletedTasks,
-    overdueTasks: user.OverdueTasks,
-  }
-}
-
 function mapAdminUserTask(
   task: BackendAdminUserTaskDto,
 ): AdminUserTaskDto {
   return {
-    id: task.Id,
-    title: task.Title,
-    description: task.Description ?? "",
-    status: task.Status,
-    priority: task.Priority,
-    category: task.CategoryName ?? "Uncategorized",
-    dueDate: task.DueDate ?? "",
+    id: task.id,
+    title: task.title,
+    description: task.description ?? "",
+    status: task.status,
+    priority: task.priority,
+    category: task.categoryName ?? "Uncategorized",
+    dueDate: task.dueDate ?? "",
   }
 }
 
-// API calls
 export async function getUsers(): Promise<AdminUserDto[]> {
   const response =
-    await apiClient.get<AdminUserListDto[]>("/AdminUser")
+    await apiClient.get<BackendAdminUserListDto[]>("/AdminUser")
 
-  return response.data.map(mapAdminUser)
+  return response.data
 }
 
 export async function getUser(
@@ -133,7 +103,7 @@ export async function getUser(
       `/AdminUser/${userId}`,
     )
 
-  return mapAdminUserDetails(response.data)
+  return response.data
 }
 
 export async function getUserTasks(
@@ -157,10 +127,10 @@ export async function createUser(
   }
 
   const response =
-    await apiClient.post<AdminUserListDto>(
+    await apiClient.post<BackendAdminUserListDto>(
       "/AdminUser",
       request,
     )
 
-  return mapAdminUser(response.data)
+  return response.data
 }

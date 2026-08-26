@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using AutoMapper;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -84,10 +85,29 @@ namespace TaskManagement
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
 
+
+
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("Frontend", policy =>
+                {
+                    policy
+                        .WithOrigins("http://localhost:8443")
+                        .AllowAnyHeader()
+                        .AllowAnyMethod();
+                });
+            });
+
+
+
             var app = builder.Build();
 
 
-
+            using (var scope = app.Services.CreateScope())
+            {
+                var mapper = scope.ServiceProvider.GetRequiredService<IMapper>();
+                mapper.ConfigurationProvider.AssertConfigurationIsValid();
+            }
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -115,16 +135,6 @@ namespace TaskManagement
             app.UseAuthorization();
 
 
-            builder.Services.AddCors(options =>
-            {
-                options.AddPolicy("Frontend", policy =>
-                {
-                    policy
-                        .WithOrigins("http://localhost:8443")
-                        .AllowAnyHeader()
-                        .AllowAnyMethod();
-                });
-            });
 
 
             app.MapControllers();

@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from "react"
 import { useOutletContext } from "react-router"
+import {getUsers, type AdminUserDto} from "@/services/adminUserService"
+import {getCategories, type CategoryDto} from "@/services/taskService"
 import type { Task, TaskStatus, TaskPriority, ToastType } from "@/types"
 import {
-  ADMIN_ASSIGNEES,
   DEFAULT_ADMIN_FILTERS,
   getAdminTasks,
   createAdminTask,
@@ -12,7 +13,7 @@ import {
   type CreateTaskPayload,
   type UpdateTaskPayload,
 } from "@/services/adminTaskService"
-import { TASK_CATEGORIES } from "@/services/taskService"
+
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 
@@ -41,6 +42,7 @@ const PAGE_SIZE = 10
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
+
 function formatDate(iso: string): string {
   const d = new Date(iso)
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" })
@@ -61,7 +63,13 @@ function isOverdue(dueDate: string, status: TaskStatus): boolean {
 }
 
 function countAdminActiveFilters(f: AdminTaskFilterState): number {
-  return f.status.length + f.priority.length + f.category.length + f.assignee.length + (f.dueDatePreset !== "any" ? 1 : 0)
+  return (
+    f.statuses.length +
+    f.priorities.length +
+    f.categoryIds.length +
+    f.assigneeIds.length +
+    (f.dueDatePreset !== "any" ? 1 : 0)
+  )
 }
 
 function getInitials(name: string): string {
@@ -365,7 +373,7 @@ function AdminTaskTable({
                     </p>
                   </td>
                   <td className="px-4 py-3.5">
-                    <AssigneeCell name={task.assignee} />
+                    <AssigneeCell name={task.assigneeName} />
                   </td>
                   <td className="px-4 py-3.5">
                     <StatusBadge status={task.status} />
@@ -374,7 +382,7 @@ function AdminTaskTable({
                     <PriorityBadge priority={task.priority} />
                   </td>
                   <td className="px-4 py-3.5">
-                    <CategoryTag category={task.category} />
+                    <CategoryTag category={task.categoryName} />
                   </td>
                   <td className="px-4 py-3.5 whitespace-nowrap">
                     <span
@@ -464,10 +472,10 @@ function AdminTaskCard({
         {task.title}
       </p>
 
-      <AssigneeCell name={task.assignee} />
+      <AssigneeCell name={task.assigneeName} />
 
       <div className="flex items-center gap-2 flex-wrap">
-        <CategoryTag category={task.category} />
+        <CategoryTag category={task.categoryName} />
         <span
           className="text-[11px]"
           style={{ fontFamily: "'Jost', sans-serif", color: overdue ? C.error : C.textMuted, fontWeight: overdue ? 600 : 400 }}
@@ -613,6 +621,8 @@ function FilterSection({ title, children }: { title: string; children: React.Rea
 function AdminFilterModal({
   open,
   pending,
+  users,
+  categories,
   onChangePending,
   onApply,
   onClear,
@@ -620,6 +630,8 @@ function AdminFilterModal({
 }: {
   open: boolean
   pending: AdminTaskFilterState
+  users: AdminUserDto[]
+  categories: CategoryDto[]
   onChangePending: (f: AdminTaskFilterState) => void
   onApply: () => void
   onClear: () => void
@@ -652,8 +664,13 @@ function AdminFilterModal({
             {(["Pending", "InProgress", "Completed"] as TaskStatus[]).map((s) => (
               <FilterCheckbox
                 key={s}
-                checked={pending.status.includes(s)}
-                onChange={() => onChangePending({ ...pending, status: toggleArr(pending.status, s) as TaskStatus[] })}
+                checked={pending.statuses.includes(s)}
+                onChange={() =>
+                  onChangePending({
+                    ...pending,
+                    statuses: toggleArr(pending.statuses, s) as TaskStatus[],
+                  })
+                }
                 label={STATUS_CONFIG[s].label}
                 color={STATUS_CONFIG[s].dot}
               />
@@ -666,8 +683,16 @@ function AdminFilterModal({
             {(["High", "Medium", "Low"] as const).map((p) => (
               <FilterCheckbox
                 key={p}
-                checked={pending.priority.includes(p)}
-                onChange={() => onChangePending({ ...pending, priority: toggleArr(pending.priority, p) as AdminTaskFilterState["priority"] })}
+                checked={pending.priorities.includes(p)}
+                onChange={() =>
+                  onChangePending({
+                    ...pending,
+                    priorities: toggleArr(
+                      pending.priorities,
+                      p,
+                    ) as AdminTaskFilterState["priorities"],
+                  })
+                }
                 label={p}
                 color={p === "High" ? C.error : p === "Medium" ? C.warning : C.textMuted}
               />
@@ -676,31 +701,47 @@ function AdminFilterModal({
 
           <div className="h-px" style={{ background: C.border }} />
 
-          <FilterSection title="Assignee">
-            <div className="grid grid-cols-2 gap-2">
-              {ADMIN_ASSIGNEES.map((a) => (
-                <FilterCheckbox
-                  key={a}
-                  checked={pending.assignee.includes(a)}
-                  onChange={() => onChangePending({ ...pending, assignee: toggleArr(pending.assignee, a) })}
-                  label={a}
-                />
-              ))}
-            </div>
-          </FilterSection>
+        <FilterSection title="Assignee">
+          <div className="grid grid-cols-2 gap-2">
+            {users.map((user) => (
+              <FilterCheckbox
+                key={user.id}
+                checked={pending.assigneeIds.includes(user.id)}
+                onChange={() =>
+                  onChangePending({
+                    ...pending,
+                    assigneeIds: toggleArr(
+                      pending.assigneeIds,
+                      user.id,
+                    ),
+                  })
+                }
+                label={user.name}
+              />
+            ))}
+          </div>
+        </FilterSection>
 
           <div className="h-px" style={{ background: C.border }} />
 
           <FilterSection title="Category">
             <div className="grid grid-cols-2 gap-2">
-              {TASK_CATEGORIES.map((cat) => (
-                <FilterCheckbox
-                  key={cat}
-                  checked={pending.category.includes(cat)}
-                  onChange={() => onChangePending({ ...pending, category: toggleArr(pending.category, cat) })}
-                  label={cat}
-                />
-              ))}
+            {categories.map((cat) => (
+              <FilterCheckbox
+                key={cat.id}
+                checked={pending.categoryIds.includes(cat.id)}
+                onChange={() =>
+                  onChangePending({
+                    ...pending,
+                    categoryIds: toggleArr(
+                      pending.categoryIds,
+                      cat.id,
+                    ),
+                  })
+                }
+                label={cat.name}
+              />
+            ))}
             </div>
           </FilterSection>
 
@@ -760,20 +801,46 @@ function AdminFilterModal({
 
 function AdminFilterChips({
   applied,
+  users,
+  categories,
   onRemove,
   onClearAll,
 }: {
   applied: AdminTaskFilterState
+  users: AdminUserDto[]
+  categories: CategoryDto[]
   onRemove: (key: string, val: string) => void
   onClearAll: () => void
 }) {
-  const chips: { key: string; label: string }[] = [
-    ...applied.status.map((s) => ({ key: `status:${s}`, label: `Status: ${STATUS_CONFIG[s].label}` })),
-    ...applied.priority.map((p) => ({ key: `priority:${p}`, label: `Priority: ${p}` })),
-    ...applied.assignee.map((a) => ({ key: `assignee:${a}`, label: `Assignee: ${a}` })),
-    ...applied.category.map((c) => ({ key: `category:${c}`, label: `Category: ${c}` })),
-    ...(applied.dueDatePreset !== "any" ? [{ key: "due:soon", label: "Due within 3 days" }] : []),
-  ]
+const chips: { key: string; label: string }[] = [
+  ...applied.statuses.map((s) => ({
+    key: `status:${s}`,
+    label: `Status: ${STATUS_CONFIG[s].label}`,
+  })),
+
+  ...applied.priorities.map((p) => ({
+    key: `priority:${p}`,
+    label: `Priority: ${p}`,
+  })),
+
+  ...applied.assigneeIds.map((id) => ({
+    key: `assignee:${id}`,
+    label: `Assignee: ${
+      users.find((a) => a.id === id)?.name ?? id
+    }`,
+  })),
+
+  ...applied.categoryIds.map((id) => ({
+    key: `category:${id}`,
+    label: `Category: ${
+      categories.find((c) => c.id === id)?.name ?? id
+    }`,
+  })),
+
+  ...(applied.dueDatePreset !== "any"
+    ? [{ key: "due:soon", label: "Due within 3 days" }]
+    : []),
+]
 
   if (chips.length === 0) return null
 
@@ -920,17 +987,27 @@ interface CreateFormData {
   description: string
   assignee: string
   priority: TaskPriority
-  category: string
+  category: number
   dueDate: string
 }
 
-function CreateTaskModal({ onClose, onCreated }: { onClose: () => void; onCreated: (t: Task) => void }) {
+function CreateTaskModal({
+  users,
+  categories,
+  onClose,
+  onCreated,
+}: {
+  users: AdminUserDto[]
+  categories: CategoryDto[]
+  onClose: () => void
+  onCreated: (t: Task) => void
+}) {
   const [form, setForm] = useState<CreateFormData>({
     title: "",
     description: "",
-    assignee: ADMIN_ASSIGNEES[0],
+    assignee: users[0]?.id ?? "",
     priority: "Medium",
-    category: TASK_CATEGORIES[0],
+    category: categories[0]?.id ?? 0,
     dueDate: "",
   })
   const [errors, setErrors] = useState<Partial<Record<keyof CreateFormData, string>>>({})
@@ -939,6 +1016,8 @@ function CreateTaskModal({ onClose, onCreated }: { onClose: () => void; onCreate
   function validate(): boolean {
     const errs: Partial<Record<keyof CreateFormData, string>> = {}
     if (!form.title.trim()) errs.title = "Title is required"
+    if (!form.assignee) errs.assignee = "Assignee is required"
+    if (!form.category) errs.category = "Category is required"
     if (!form.dueDate) errs.dueDate = "Due date is required"
     setErrors(errs)
     return Object.keys(errs).length === 0
@@ -951,9 +1030,9 @@ function CreateTaskModal({ onClose, onCreated }: { onClose: () => void; onCreate
       const payload: CreateTaskPayload = {
         title: form.title,
         description: form.description,
-        assignee: form.assignee,
+        assigneeId: form.assignee,
         priority: form.priority,
-        category: form.category,
+        categoryId: Number(form.category),
         dueDate: form.dueDate,
       }
       const task = await createAdminTask(payload)
@@ -965,7 +1044,7 @@ function CreateTaskModal({ onClose, onCreated }: { onClose: () => void; onCreate
     }
   }
 
-  function set(key: keyof CreateFormData, val: string) {
+  function set(key: keyof CreateFormData, val: string | number) {
     setForm((f) => ({ ...f, [key]: val }))
     setErrors((e) => ({ ...e, [key]: undefined }))
   }
@@ -1021,7 +1100,11 @@ function CreateTaskModal({ onClose, onCreated }: { onClose: () => void; onCreate
                 onFocus={focusInput}
                 onBlur={blurInput}
               >
-                {ADMIN_ASSIGNEES.map((a) => <option key={a} value={a}>{a}</option>)}
+              {users.map((user) => (
+                <option key={user.id} value={user.id}>
+                  {user.name}
+                </option>
+              ))}
               </select>
             </FormField>
 
@@ -1042,12 +1125,12 @@ function CreateTaskModal({ onClose, onCreated }: { onClose: () => void; onCreate
             <FormField label="Category" required>
               <select
                 value={form.category}
-                onChange={(e) => set("category", e.target.value)}
+                onChange={(e) => set("category", Number(e.target.value))}
                 style={{ ...INPUT_BASE, cursor: "pointer" }}
                 onFocus={focusInput}
                 onBlur={blurInput}
               >
-                {TASK_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </FormField>
 
@@ -1113,18 +1196,30 @@ interface EditFormData {
   assignee: string
   status: TaskStatus
   priority: TaskPriority
-  category: string
+  category: number
   dueDate: string
 }
 
-function EditTaskModal({ task, onClose, onUpdated }: { task: Task; onClose: () => void; onUpdated: (t: Task) => void }) {
+function EditTaskModal({
+  task,
+  users,
+  categories,
+  onClose,
+  onUpdated,
+}: {
+  task: Task
+  users: AdminUserDto[]
+  categories: CategoryDto[]
+  onClose: () => void
+  onUpdated: (t: Task) => void
+}) {
   const [form, setForm] = useState<EditFormData>({
     title: task.title,
     description: task.description,
-    assignee: task.assignee,
+    assignee: users.find((u) => u.name === task.assigneeName)?.id ?? "",
     status: task.status,
     priority: task.priority,
-    category: task.category,
+    category: categories.find((c) => c.name === task.categoryName)?.id ?? 0,
     dueDate: task.dueDate,
   })
   const [errors, setErrors] = useState<Partial<Record<keyof EditFormData, string>>>({})
@@ -1133,6 +1228,8 @@ function EditTaskModal({ task, onClose, onUpdated }: { task: Task; onClose: () =
   function validate(): boolean {
     const errs: Partial<Record<keyof EditFormData, string>> = {}
     if (!form.title.trim()) errs.title = "Title is required"
+    if (!form.assignee) errs.assignee = "Assignee is required"
+    if (!form.category) errs.category = "Category is required"
     if (!form.dueDate) errs.dueDate = "Due date is required"
     setErrors(errs)
     return Object.keys(errs).length === 0
@@ -1145,10 +1242,10 @@ function EditTaskModal({ task, onClose, onUpdated }: { task: Task; onClose: () =
       const payload: UpdateTaskPayload = {
         title: form.title.trim(),
         description: form.description.trim(),
-        assignee: form.assignee,
+        assigneeId: form.assignee,
         status: form.status,
         priority: form.priority,
-        category: form.category,
+        categoryId: Number(form.category),
         dueDate: form.dueDate,
       }
       const updated = await updateAdminTask(task.id, payload)
@@ -1160,7 +1257,7 @@ function EditTaskModal({ task, onClose, onUpdated }: { task: Task; onClose: () =
     }
   }
 
-  function set(key: keyof EditFormData, val: string) {
+  function set(key: keyof EditFormData, val: string | number) {
     setForm((f) => ({ ...f, [key]: val }))
     setErrors((e) => ({ ...e, [key]: undefined }))
   }
@@ -1214,7 +1311,7 @@ function EditTaskModal({ task, onClose, onUpdated }: { task: Task; onClose: () =
                 onFocus={focusInput}
                 onBlur={blurInput}
               >
-                {ADMIN_ASSIGNEES.map((a) => <option key={a} value={a}>{a}</option>)}
+                {users.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
               </select>
             </FormField>
 
@@ -1247,12 +1344,12 @@ function EditTaskModal({ task, onClose, onUpdated }: { task: Task; onClose: () =
             <FormField label="Category" required>
               <select
                 value={form.category}
-                onChange={(e) => set("category", e.target.value)}
+                onChange={(e) => set("category", Number(e.target.value))}
                 style={{ ...INPUT_BASE, cursor: "pointer" }}
                 onFocus={focusInput}
                 onBlur={blurInput}
               >
-                {TASK_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </FormField>
           </div>
@@ -1306,10 +1403,10 @@ function TaskDetailModal({ task, onClose, onEdit }: { task: Task; onClose: () =>
   const overdue = isOverdue(task.dueDate, task.status)
 
   const fields: { label: string; value: React.ReactNode }[] = [
-    { label: "Assignee",    value: <AssigneeCell name={task.assignee} /> },
+    { label: "Assignee",    value: <AssigneeCell name={task.assigneeName} /> },
     { label: "Status",      value: <StatusBadge status={task.status} /> },
     { label: "Priority",    value: <PriorityBadge priority={task.priority} /> },
-    { label: "Category",    value: <CategoryTag category={task.category} /> },
+    { label: "Category",    value: <CategoryTag category={task.categoryName } /> },
     { label: "Due Date",    value: <span className="text-[13px]" style={{ fontFamily: "'Jost', sans-serif", color: overdue ? C.error : C.textSecondary, fontWeight: overdue ? 600 : 400 }}>{overdue ? "⚠ Overdue — " : ""}{formatDate(task.dueDate)}</span> },
     { label: "Last Updated",value: <span className="text-[13px]" style={{ fontFamily: "'Jost', sans-serif", color: C.textSecondary }}>{formatRelative(task.updatedAt)}</span> },
     { label: "Created",     value: <span className="text-[13px]" style={{ fontFamily: "'Jost', sans-serif", color: C.textSecondary }}>{formatDate(task.createdAt)}</span> },
@@ -1449,6 +1546,9 @@ interface OutletCtx { addToast: (type: ToastType, message: string) => void }
 export default function AdminTasksPage() {
   const { addToast } = useOutletContext<OutletCtx>()
 
+  const [users, setUsers] = useState<AdminUserDto[]>([])
+  const [categories, setCategories] = useState<CategoryDto[]>([])
+
   const [view, setView] = useState<"list" | "cards">("list")
   const [searchInput, setSearchInput] = useState("")
   const [keyword, setKeyword] = useState("")
@@ -1471,6 +1571,32 @@ export default function AdminTasksPage() {
   const [viewTask, setViewTask] = useState<Task | null>(null)
   const [deleteTask, setDeleteTask] = useState<Task | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
+
+  useEffect(() => {
+    async function loadUsers() {
+      try {
+        const data = await getUsers()
+        setUsers(data)
+      } catch {
+        // Keep UI usable even if user directory fails to load.
+      }
+    }
+
+    loadUsers()
+  }, [])
+
+  useEffect(() => {
+    async function loadCategories() {
+      try {
+        const data = await getCategories()
+        setCategories(data)
+      } catch {
+        // Keep UI usable even if category lookup fails to load.
+      }
+    }
+
+    loadCategories()
+  }, [])
 
   // Debounce search
   useEffect(() => {
@@ -1533,15 +1659,25 @@ export default function AdminTasksPage() {
   function handleClearFilters() { setPendingFilters(DEFAULT_ADMIN_FILTERS); setAppliedFilters(DEFAULT_ADMIN_FILTERS); setPage(1); setFilterModalOpen(false) }
   function handleOpenFilterModal() { setPendingFilters(appliedFilters); setFilterModalOpen(true) }
 
-  function handleRemoveChip(type: string, val: string) {
-    const f = { ...appliedFilters }
-    if (type === "status") f.status = f.status.filter((x) => x !== val) as typeof f.status
-    else if (type === "priority") f.priority = f.priority.filter((x) => x !== val) as typeof f.priority
-    else if (type === "assignee") f.assignee = f.assignee.filter((x) => x !== val)
-    else if (type === "category") f.category = f.category.filter((x) => x !== val)
-    else if (type === "due") f.dueDatePreset = "any"
-    setAppliedFilters(f); setPendingFilters(f); setPage(1)
+function handleRemoveChip(type: string, val: string) {
+  const f = { ...appliedFilters }
+
+  if (type === "status") {
+    f.statuses = f.statuses.filter((x) => x !== val) as TaskStatus[]
+  } else if (type === "priority") {
+    f.priorities = f.priorities.filter((x) => x !== val) as TaskPriority[]
+  } else if (type === "assignee") {
+    f.assigneeIds = f.assigneeIds.filter((x) => x !== val)
+  } else if (type === "category") {
+    f.categoryIds = f.categoryIds.filter((x) => x !== Number(val))
+  } else if (type === "due") {
+    f.dueDatePreset = "any"
   }
+
+  setAppliedFilters(f)
+  setPendingFilters(f)
+  setPage(1)
+}
 
   function handlePageChange(p: number) { setPage(p); window.scrollTo({ top: 0, behavior: "smooth" }) }
 
@@ -1659,7 +1795,13 @@ export default function AdminTasksPage() {
 
         {/* ── Active filter chips ── */}
         {activeFilterCount > 0 && (
-          <AdminFilterChips applied={appliedFilters} onRemove={handleRemoveChip} onClearAll={handleClearFilters} />
+          <AdminFilterChips
+            applied={appliedFilters}
+            users={users}
+            categories={categories}
+            onRemove={handleRemoveChip}
+            onClearAll={handleClearFilters}
+          />
         )}
 
         {/* ── Content ── */}
@@ -1719,6 +1861,8 @@ export default function AdminTasksPage() {
       <AdminFilterModal
         open={filterModalOpen}
         pending={pendingFilters}
+        users={users}
+        categories={categories}
         onChangePending={setPendingFilters}
         onApply={handleApplyFilters}
         onClear={handleClearFilters}
@@ -1727,6 +1871,8 @@ export default function AdminTasksPage() {
 
       {createOpen && (
         <CreateTaskModal
+          users={users}
+          categories={categories}
           onClose={() => setCreateOpen(false)}
           onCreated={handleCreated}
         />
@@ -1735,6 +1881,8 @@ export default function AdminTasksPage() {
       {editTask && (
         <EditTaskModal
           task={editTask}
+          users={users}
+          categories={categories}
           onClose={() => setEditTask(null)}
           onUpdated={handleUpdated}
         />

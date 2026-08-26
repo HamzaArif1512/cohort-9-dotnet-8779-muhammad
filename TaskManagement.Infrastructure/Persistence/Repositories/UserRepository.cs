@@ -22,7 +22,6 @@ public class UserRepository : GenericRepository<User, Guid>, IUserRepository
     public async Task<User?> GetByIdWithRoleAsync(Guid id, CancellationToken cancellationToken)
     {
         return await _context.Users
-            .Include(u => u.Role)
             .FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
     }
 

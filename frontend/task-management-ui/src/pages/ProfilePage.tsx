@@ -255,10 +255,10 @@ function ProfileCard({ data }: { data: ProfileDto }) {
               className="text-[26px] font-bold leading-tight"
               style={{ fontFamily: "'Archivo', sans-serif", color: C.text }}
             >
-              {data.FullName}
+              {data.fullName}
             </h2>
             <div className="mt-2.5">
-              <RoleBadge role={data.Role} />
+              <RoleBadge role={data.role} />
             </div>
           </div>
           {/* Profile icon mark */}
@@ -276,9 +276,9 @@ function ProfileCard({ data }: { data: ProfileDto }) {
 
       {/* Fields */}
       <div className="px-7 py-2">
-        <ProfileField icon={<IconMail />} label="Email Address" value={data.Email} />
-        <ProfileField icon={<IconUser />} label="Role" value={roleDisplay(data.Role)} />
-        <MemberSinceField date={data.CreatedAt} />
+        <ProfileField icon={<IconMail />} label="Email Address" value={data.email} />
+        <ProfileField icon={<IconUser />} label="Role" value={roleDisplay(data.role)} />
+        <MemberSinceField date={data.createdAt} />
       </div>
     </div>
   )
@@ -533,7 +533,7 @@ export default function ProfilePage() {
 
             {/* Right: access + session stacked */}
             <div className="flex flex-col gap-4">
-              <AccessCard role={profile.Role} />
+              <AccessCard role={profile.role} />
               <SessionCard onLogout={onLogout} />
             </div>
           </div>

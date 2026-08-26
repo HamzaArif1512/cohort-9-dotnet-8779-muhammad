@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback, useRef } from "react"
 import { useOutletContext } from "react-router"
 import type { Task, TaskStatus, TaskFilterState, ToastType } from "@/types"
 import { DEFAULT_FILTERS } from "@/types"
-import { TASK_CATEGORIES, getTasks, updateTaskStatus } from "@/services/taskService"
+import {getTasks, updateTaskStatus } from "@/services/taskService"
+import {getCategories, type CategoryDto} from "@/services/taskService"
 
 // ─── Design tokens (shared with Dashboard) ────────────────────────────────────
 
@@ -330,7 +331,7 @@ function TaskTable({
                   </td>
                   {/* Category */}
                   <td className="px-4 py-3.5">
-                    <CategoryTag category={task.category} />
+                    <CategoryTag category={task.categoryName} />
                   </td>
                   {/* Due date */}
                   <td className="px-4 py-3.5 whitespace-nowrap">
@@ -423,7 +424,7 @@ function TaskCard({
 
       {/* Category */}
       <div>
-        <CategoryTag category={task.category} />
+        <CategoryTag category={task.categoryName} />
       </div>
 
       {/* Bottom row: updated + status */}
@@ -576,6 +577,7 @@ function FilterSection({ title, children }: { title: string; children: React.Rea
 function FilterModal({
   open,
   pending,
+  categories,
   onChangePending,
   onApply,
   onClear,
@@ -583,6 +585,7 @@ function FilterModal({
 }: {
   open: boolean
   pending: TaskFilterState
+  categories: CategoryDto[]
   onChangePending: (f: TaskFilterState) => void
   onApply: () => void
   onClear: () => void
@@ -651,12 +654,12 @@ function FilterModal({
           {/* Category */}
           <FilterSection title="Category">
             <div className="grid grid-cols-2 gap-2">
-              {TASK_CATEGORIES.map((cat) => (
+              {categories.map((cat) => (
                 <FilterCheckbox
-                  key={cat}
-                  checked={pending.category.includes(cat)}
-                  onChange={() => onChangePending({ ...pending, category: toggleArr(pending.category, cat) })}
-                  label={cat}
+                  key={cat.id}
+                  checked={pending.category.includes(cat.name)}
+                  onChange={() => onChangePending({ ...pending, category: toggleArr(pending.category, cat.name) })}
+                  label={cat.name}
                 />
               ))}
             </div>
@@ -832,7 +835,7 @@ function TaskDetailModal({
           <div className="flex flex-wrap items-center gap-2">
             <StatusBadge status={task.status} />
             <PriorityBadge priority={task.priority} />
-            <CategoryTag category={task.category} />
+            <CategoryTag category={task.categoryName} />
           </div>
 
           {/* Description */}
@@ -881,7 +884,7 @@ function TaskDetailModal({
                 Category
               </p>
               <p className="text-[13px]" style={{ fontFamily: "'Jost', sans-serif", color: C.textSecondary }}>
-                {task.category}
+                {task.categoryName}
               </p>
             </div>
 
@@ -993,11 +996,25 @@ export default function TasksPage() {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
 
   // Data
+  const [categories, setCategories] = useState<CategoryDto[]>([])
   const [tasks, setTasks] = useState<Task[]>([])
   const [totalCount, setTotalCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [pageLoading, setPageLoading] = useState(false)
   const [error, setError] = useState(false)
+
+  useEffect(() => {
+    async function loadCategories() {
+      try {
+        const data = await getCategories()
+        setCategories(data)
+      } catch {
+        // Keep filters usable even if category lookup fails.
+      }
+    }
+
+    loadCategories()
+  }, [])
 
   // Debounce search
   useEffect(() => {
@@ -1234,6 +1251,7 @@ export default function TasksPage() {
       <FilterModal
         open={filterModalOpen}
         pending={pendingFilters}
+        categories={categories}
         onChangePending={setPendingFilters}
         onApply={handleApplyFilters}
         onClear={handleClearFilters}

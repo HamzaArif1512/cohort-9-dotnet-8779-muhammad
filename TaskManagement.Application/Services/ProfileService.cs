@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using TaskManagement.Application.DTOs.ProfileDtos;
 using TaskManagement.Application.Interfaces.Repositories;
 using TaskManagement.Application.Interfaces.Services;
+using TaskManagement.Domain.Entities;
 
 namespace TaskManagement.Application.Services;
 

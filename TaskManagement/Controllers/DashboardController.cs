@@ -19,7 +19,7 @@ public class DashboardController : ControllerBase
     }
 
     [HttpGet("user")]
-    [Authorize(Roles = "User,Admin")]
+    [Authorize(Roles = "RegularUser,Admin")]
     public async Task<ActionResult<UserDashboardDto>> GetUserDashboard(CancellationToken cancellationToken)
     {
         var dashboard = await _dashboardService.GetUserDashboardAsync(cancellationToken);
