@@ -172,6 +172,58 @@ public class TaskService : ITaskService
         return _mapper.Map<TaskResponseDto>(updatedTask);
     }
 
+    //Update task status only
+    public async Task<TaskResponseDto?> UpdateTaskStatusAsync(
+        Guid id,
+        UpdateTaskStatusDto dto,
+        CancellationToken cancellationToken)
+    {
+        var task = await _taskRepository.GetByIdWithDetailsAsync(
+            id,
+            cancellationToken);
+
+        if (task == null)
+        {
+            return null;
+        }
+
+        var currentUserId = _currentUserService.UserId;
+
+        if (currentUserId is null)
+        {
+            _logger.LogWarning(
+                "Unable to determine the current authenticated user.");
+
+            throw new UnauthorizedAccessException(
+                "Unable to determine the current user.");
+        }
+
+        if (!_currentUserService.IsAdmin &&
+            task.UserId != currentUserId.Value)
+        {
+            _logger.LogWarning(
+                "User {UserId} attempted to update status of task {TaskId} without authorization.",
+                currentUserId,
+                id);
+
+            throw new UnauthorizedAccessException(
+                "You are not authorized to update this task.");
+        }
+
+        task.Status = dto.Status;
+        task.UpdatedAt = DateTime.UtcNow;
+
+        _taskRepository.Update(task);
+
+        await _taskRepository.SaveChangesAsync(cancellationToken);
+
+        var updatedTask = await _taskRepository.GetByIdWithDetailsAsync(
+            id,
+            cancellationToken);
+
+        return _mapper.Map<TaskResponseDto>(updatedTask);
+    }
+
     //Apply custom filter to retrieve tasks
     public async Task<IEnumerable<TaskResponseDto>> SearchTasksAsync(TaskSearchDto filters, CancellationToken cancellationToken)
     {

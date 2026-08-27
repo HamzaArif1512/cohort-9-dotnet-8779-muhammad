@@ -67,6 +67,23 @@ public class TaskController : ControllerBase
         return Ok(task);
     }
 
+    //Update task status endpoint
+    [HttpPatch("{id}/status")]
+    [Authorize]
+    [ProducesResponseType(typeof(TaskResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> UpdateTaskStatus(Guid id, [FromBody] UpdateTaskStatusDto dto, CancellationToken cancellationToken)
+    {
+        var task = await _taskService.UpdateTaskStatusAsync(id, dto, cancellationToken);
+        if (task == null)
+        {
+            return NotFound();
+        }
+        return Ok(task);
+    }
 
     //Apply filters to search tasks endpoint
     [HttpGet("search")]

@@ -10,8 +10,13 @@ public interface ITaskService
 
     public Task<TaskResponseDto?> GetTaskByIdAsync(Guid id, CancellationToken cancellationToken);
     public Task<TaskResponseDto?> UpdateTaskAsync(
-        Guid id,
+        Guid taskid,
         UpdateTaskDto dto,
+        CancellationToken cancellationToken);
+
+    public Task<TaskResponseDto?> UpdateTaskStatusAsync(
+        Guid id,
+        UpdateTaskStatusDto dto,
         CancellationToken cancellationToken);
 
     public Task<IEnumerable<TaskResponseDto>> SearchTasksAsync(TaskSearchDto filters, CancellationToken cancellationToken);

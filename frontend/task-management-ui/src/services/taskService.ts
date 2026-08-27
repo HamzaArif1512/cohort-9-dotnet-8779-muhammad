@@ -140,24 +140,9 @@ export async function updateTaskStatus(
   id: string,
   status: TaskStatus,
 ): Promise<Task> {
-  const existingResponse =
-    await apiClient.get<TaskResponseDto>(`/Task/${id}`)
-
-  const existingTask = existingResponse.data
-
-  const updateDto: UpdateTaskDto = {
-    title: existingTask.title,
-    description: existingTask.description,
-    dueDate: existingTask.dueDate,
-    priority: existingTask.priority,
-    status,
-    categoryId: 0,
-    assigneeId: "",
-  }
-
-  const response = await apiClient.put<TaskResponseDto>(
-    `/Task/${id}`,
-    updateDto,
+  const response = await apiClient.patch<TaskResponseDto>(
+    `/Task/${id}/status`,
+    { status },
   )
 
   return mapTask(response.data)
