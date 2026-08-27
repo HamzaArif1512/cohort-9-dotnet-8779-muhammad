@@ -107,6 +107,13 @@ public class AdminUserService : IAdminUserService
         await _userRepository.AddAsync(
             user);
 
+        var changes = await _userRepository.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation(
+            "Created user {UserId}. Database changes saved: {Changes}",
+            user.Id,
+            changes);
+
         _logger.LogInformation(
             "Regular user {UserId} created successfully.",
             user.Id);
