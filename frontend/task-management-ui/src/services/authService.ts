@@ -10,85 +10,97 @@ interface AuthResponseDto {
 }
 
 export const authService = {
+  async getProfile(): Promise<AuthUser> {
+    const response = await apiClient.get<ProfileDto>("/Profile")
+    const profile = response.data
+
+    return {
+      fullName: profile.fullName,
+      email: profile.email,
+      role: profile.role.toLowerCase() === "admin" ? "admin" : "user",
+    }
+  },
+
   async login(
     email: string,
     password: string,
   ): Promise<AuthUser> {
-    const response = await apiClient.post<AuthResponseDto>(
-      "/Auth/login",
-      {
-        email,
-        password,
-      },
-    )
+    try {
+      const response = await apiClient.post<AuthResponseDto>(
+        "/Auth/login",
+        {
+          email,
+          password,
+        },
+      )
 
-    const {
-      accessToken,
-      refreshToken,
-      accessTokenExpiresAt,
-      refreshTokenExpiresAt,
-    } = response.data
+      const {
+        accessToken,
+        refreshToken,
+        accessTokenExpiresAt,
+        refreshTokenExpiresAt,
+      } = response.data
 
-    localStorage.setItem("accessToken", accessToken)
-    localStorage.setItem("refreshToken", refreshToken)
-    localStorage.setItem(
-      "accessTokenExpiresAt",
-      accessTokenExpiresAt,
-    )
-    localStorage.setItem(
-      "refreshTokenExpiresAt",
-      refreshTokenExpiresAt,
-    )
+      localStorage.setItem("accessToken", accessToken)
+      localStorage.setItem("refreshToken", refreshToken)
+      localStorage.setItem(
+        "accessTokenExpiresAt",
+        accessTokenExpiresAt,
+      )
+      localStorage.setItem(
+        "refreshTokenExpiresAt",
+        refreshTokenExpiresAt,
+      )
 
-    const profileResponse =
-      await apiClient.get<ProfileDto>("/Profile")
+      return this.getProfile()
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const message = error.response?.data?.message
 
-    const profile = profileResponse.data
+        if (typeof message === "string") {
+          throw new Error(message)
+        }
+      }
 
-return {
-  fullName: profile.fullName,
-  email: profile.email,
-  role: profile.role.toLowerCase() === "admin"
-    ? "admin"
-    : "user",
-}
+      throw new Error("Login failed. Please try again.")
+    }
   },
 
-async register(
-  fullName: string,
-  email: string,
-  password: string,
-  confirmPassword: string,
-): Promise<void> {
-  try {
-    await apiClient.post("/Auth/register", {
-      fullName,
-      email,
-      password,
-      confirmPassword,
-    })
-  } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      const validationErrors = error.response?.data?.errors
+  async register(
+    fullName: string,
+    email: string,
+    password: string,
+    confirmPassword: string,
+  ): Promise<void> {
+    try {
+      await apiClient.post("/Auth/register", {
+        fullName,
+        email,
+        password,
+        confirmPassword,
+      })
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const validationErrors = error.response?.data?.errors
 
-      if (validationErrors) {
-        const messages = Object.values(
-          validationErrors,
-        ).flat() as string[]
+        if (validationErrors) {
+          const messages = Object.values(
+            validationErrors,
+          ).flat() as string[]
 
-        throw new Error(messages.join(" "))
+          throw new Error(messages.join(" "))
+        }
+
+        const message = error.response?.data?.message
+
+        if (message) {
+          throw new Error(message)
+        }
       }
 
-      const message = error.response?.data?.message
-
-      if (message) {
-        throw new Error(message)
-      }
+      throw new Error("Registration failed. Please try again.")
     }
-
-    throw new Error("Registration failed. Please try again.")
-  }
-},
+  },
 
   async logout(): Promise<void> {
     const refreshToken = localStorage.getItem("refreshToken")

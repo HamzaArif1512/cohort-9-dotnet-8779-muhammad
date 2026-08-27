@@ -1,8 +1,10 @@
 import {
   createContext,
   useContext,
+  useEffect,
   useState,
 } from "react"
+import { authService } from "@/services/authService"
 
 export interface AuthUser {
   fullName: string
@@ -12,8 +14,9 @@ export interface AuthUser {
 
 interface AuthContextValue {
   user: AuthUser | null
+  loading: boolean
   login: (user: AuthUser) => void
-  logout: () => void
+  logout: () => Promise<void>
 }
 
 const AuthContext =
@@ -27,12 +30,51 @@ export function AuthProvider({
   const [user, setUser] =
     useState<AuthUser | null>(null)
 
+  const [loading, setLoading] =
+    useState(true)
+
+  useEffect(() => {
+    async function restoreSession() {
+      const accessToken =
+        localStorage.getItem("accessToken")
+
+      if (!accessToken) {
+        setLoading(false)
+        return
+      }
+
+      try {
+        const profile =
+          await authService.getProfile()
+
+        setUser(profile)
+      } catch {
+        setUser(null)
+        await authService.logout().catch(() => undefined)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    restoreSession()
+  }, [])
+
+  function login(user: AuthUser) {
+    setUser(user)
+  }
+
+  async function logout() {
+    await authService.logout()
+    setUser(null)
+  }
+
   return (
     <AuthContext.Provider
       value={{
         user,
-        login: setUser,
-        logout: () => setUser(null),
+        loading,
+        login,
+        logout,
       }}
     >
       {children}

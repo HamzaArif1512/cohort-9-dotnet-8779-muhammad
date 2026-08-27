@@ -313,6 +313,7 @@ function handleLoginSuccess(msg: string, user: AuthUser) {
 
 function handleRegisterSuccess(msg: string, email: string) {
   addToast("success", msg)
+  setTab("login")
 }
 
   return (
