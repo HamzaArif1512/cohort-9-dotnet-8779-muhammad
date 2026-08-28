@@ -22,9 +22,26 @@ public class GlobalExceptionMiddleware
         {
             await _next(context);
         }
+        catch (UnauthorizedAccessException ex)
+        {
+            _logger.LogWarning(ex, "Unauthorized access attempt.");
+
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+
+            await context.Response.WriteAsJsonAsync(new
+            {
+                message = ex.Message
+            });
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "An unhandled exception occurred.");
+
+            if(context.Response.HasStarted)
+            {
+                _logger.LogWarning("The response has already started, the global exception middleware will not be executed.");
+                throw;
+            }
 
             await HandleExceptionAsync(context, ex);
         }

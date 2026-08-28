@@ -59,13 +59,17 @@ public class MappingProfile : Profile
                 dest => dest.UpdatedAt,
                 opt => opt.Ignore());
 
-            CreateMap<TaskItem, TaskResponseDto>()
-         .ForMember(
-             dest => dest.CategoryName,
-             opt => opt.MapFrom(src => src.Category.Name))
-         .ForMember(
-             dest => dest.AssigneeName,
-             opt => opt.MapFrom(src => src.Users.Name));
+        CreateMap<TaskItem, TaskResponseDto>()
+            .ForMember(
+                dest => dest.CategoryName,
+                opt => opt.MapFrom(src => src.Category != null
+                    ? src.Category.Name
+                    : null))
+            .ForMember(
+                dest => dest.AssigneeName,
+                opt => opt.MapFrom(src => src.Users != null
+                    ? src.Users.Name
+                    : null));
 
         CreateMap<RegisterUserDto, User>()
             .ForMember(

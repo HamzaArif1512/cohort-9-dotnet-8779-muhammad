@@ -36,7 +36,28 @@ namespace TaskManagement
                     .Enrich.FromLogContext();
             });
 
-            builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
+            builder.Services
+            .AddOptions<JwtSettings>()
+            .Bind(builder.Configuration.GetSection("Jwt"))
+            .Validate(settings =>
+                !string.IsNullOrWhiteSpace(settings.Key),
+                "JWT Key is required.")
+            .Validate(settings =>
+                !string.IsNullOrWhiteSpace(settings.Issuer),
+                "JWT Issuer is required.")
+            .Validate(settings =>
+                !string.IsNullOrWhiteSpace(settings.Audience),
+                "JWT Audience is required.")
+            .Validate(settings =>
+                settings.AccessTokenExpirationMinutes > 0,
+                "JWT access token expiration must be greater than 0 minutes.")
+            .Validate(settings =>
+                settings.RefreshTokenExpirationDays > 0,
+                "JWT refresh token expiration must be greater than 0 days.")
+            .Validate(settings =>
+                System.Text.Encoding.UTF8.GetByteCount(settings.Key) >= 32,
+                "JWT Key must be at least 32 UTF-8 bytes long.")
+            .ValidateOnStart();
 
             var jwtSettings = builder.Configuration.GetSection("Jwt").Get<JwtSettings>() ?? throw new InvalidOperationException("JWT settings are not configured properly.");
 
@@ -112,13 +133,12 @@ namespace TaskManagement
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
+                app.UseSwagger();
+                app.UseSwaggerUI();
                 app.MapOpenApi();
             }
-            
 
-            //swagger
-            app.UseSwagger();
-            app.UseSwaggerUI();
+
 
             //Register middleware extension method
             app.UseGlobalExceptionMiddleware(builder.Configuration);

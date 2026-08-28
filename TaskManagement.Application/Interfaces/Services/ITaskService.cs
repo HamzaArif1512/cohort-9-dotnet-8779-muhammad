@@ -12,6 +12,8 @@ public interface ITaskService
     public Task<TaskResponseDto?> UpdateTaskAsync(
         Guid taskid,
         UpdateTaskDto dto,
+        Guid userId,
+        bool isAdmin,
         CancellationToken cancellationToken);
 
     public Task<TaskResponseDto?> UpdateTaskStatusAsync(

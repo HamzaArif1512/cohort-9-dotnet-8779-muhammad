@@ -12,5 +12,5 @@ public interface IGenericRepository<T, TKey> where T : class
     public void Update(T entity);
     public void Remove(T entity);
     public void RemoveRange(IEnumerable<T> entities);
-       public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+    public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

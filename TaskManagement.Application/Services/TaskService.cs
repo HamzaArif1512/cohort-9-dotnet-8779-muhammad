@@ -118,6 +118,8 @@ public class TaskService : ITaskService
     public async Task<TaskResponseDto?> UpdateTaskAsync(
         Guid id,
         UpdateTaskDto dto,
+        Guid userId,
+        bool isAdmin,
         CancellationToken cancellationToken)
     {
         var task = await _taskRepository.GetByIdWithDetailsAsync(

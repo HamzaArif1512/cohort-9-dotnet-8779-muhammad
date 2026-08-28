@@ -6,6 +6,12 @@ using TaskManagement.Application.DTOs.UserDtos;
 using TaskManagement.Domain.Entities;
 using TaskManagement.Domain.Enums;
 using TaskManagement.Application.Exceptions;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.SqlClient;
+
+
+
+
 
 namespace TaskManagement.Application.Services;
 
@@ -43,17 +49,28 @@ public class AuthService : IAuthService
             throw new DuplicateEmailException("User with this email already exists.");
         }
 
-        var user = new User
-        {
-            Name = request.FullName,
-            Email = normalizedEmail,
-            Role = UserRole.RegularUser
-        };
+        var user = new User(
+            request.FullName,
+            normalizedEmail,
+            UserRole.RegularUser);
 
-        user.PasswordHash = _passwordHasher.HashPassword(user, request.Password);
+        var passwordHash = _passwordHasher.HashPassword(
+            user,
+            request.Password);
+
+        user.SetPasswordHash(passwordHash);
 
         await _userRepository.AddAsync(user);
-        await _userRepository.SaveChangesAsync();
+
+        try
+        {
+            await _userRepository.SaveChangesAsync();
+        }
+        catch (SqlException ex) when (ex.Number is 2601 or 2627)
+        {
+            throw new DuplicateEmailException(
+                "User with this email already exists.");
+        }
 
         return await _tokenService.GenerateTokensAsync(user);
     }
@@ -100,4 +117,5 @@ public class AuthService : IAuthService
         return await _tokenService.RevokeRefreshTokenAsync(
             dto.RefreshToken);
     }
+
 }
