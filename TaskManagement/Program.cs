@@ -24,6 +24,7 @@ namespace TaskManagement
     {
         public static void Main(string[] args)
         {
+            Console.WriteLine("========== PROGRAM STARTED ==========");
             var builder = WebApplication.CreateBuilder(args);
 
 
@@ -124,11 +125,11 @@ namespace TaskManagement
             var app = builder.Build();
 
 
-            using (var scope = app.Services.CreateScope())
-            {
-                var mapper = scope.ServiceProvider.GetRequiredService<IMapper>();
-                mapper.ConfigurationProvider.AssertConfigurationIsValid();
-            }
+            //using (var scope = app.Services.CreateScope())
+            //{
+            //    var mapper = scope.ServiceProvider.GetRequiredService<IMapper>();
+            //    mapper.ConfigurationProvider.AssertConfigurationIsValid();
+            //}
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -184,9 +185,22 @@ namespace TaskManagement
             });
 
             //Confrmation message to indicate that the application is running
+            Console.WriteLine("========== BEFORE LOG ==========");
+
             Log.Information("TaskManagement API started.");
 
+            Console.WriteLine("========== AFTER LOG ==========");
+
+            foreach (var address in app.Urls)
+            {
+                Console.WriteLine($"API listening on: {address}");
+            }
+
+            Console.WriteLine("========== BEFORE APP.RUN ==========");
+
             app.Run();
+
+            Console.WriteLine("========== AFTER APP.RUN ==========");
         }
     }
 }

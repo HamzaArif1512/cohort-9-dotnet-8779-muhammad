@@ -26,7 +26,7 @@ interface BackendAdminUserTaskDto {
   title: string
   description: string | null
   status: TaskStatus
-  priority: TaskPriority
+  priority: TaskPriority | number
   dueDate: string | null
   categoryId: number | null
   categoryName: string | null
@@ -74,6 +74,12 @@ export interface CreateUserPayload {
   password: string
 }
 
+function mapTaskPriority(priority: TaskPriority | number): TaskPriority {
+  if (typeof priority === "string") return priority
+
+  return ["High", "Medium", "Low"][priority] as TaskPriority
+}
+
 function mapAdminUserTask(
   task: BackendAdminUserTaskDto,
 ): AdminUserTaskDto {
@@ -82,7 +88,7 @@ function mapAdminUserTask(
     title: task.title,
     description: task.description ?? "",
     status: task.status,
-    priority: task.priority,
+    priority: mapTaskPriority(task.priority),
     category: task.categoryName ?? "Uncategorized",
     dueDate: task.dueDate ?? "",
   }

@@ -6,6 +6,7 @@ using TaskManagement.Application.DTOs.AdminUserDtos;
 using TaskManagement.Application.Interfaces.Repositories;
 using TaskManagement.Application.Services;
 using TaskManagement.Domain.Entities;
+using TaskManagement.Domain.Enums;
 
 namespace TaskManagement.Application.Tests.Services;
 
@@ -222,12 +223,10 @@ public class AdminUserServiceTests
             Password = "Password123!"
         };
 
-        var existingUser = new User
-        {
-            Id = Guid.NewGuid(),
-            Name = "Existing User",
-            Email = dto.Email
-        };
+        var existingUser = new User(
+            "Existing User",
+            dto.Email,
+            UserRole.RegularUser);
 
         _userRepositoryMock
             .Setup(x => x.GetByEmailAsync(dto.Email))

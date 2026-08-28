@@ -8,13 +8,13 @@ namespace TaskManagement.Domain.Entities
 {
     public class User : BaseEntity
     {
-        public string Name { get; private set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
 
-        public string Email { get; private set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
 
-        public string PasswordHash { get; private set; } = string.Empty;
+        public string PasswordHash { get; set; } = string.Empty;
 
-        public UserRole Role { get; private set; } = UserRole.RegularUser;
+        public UserRole Role { get; set; } = UserRole.RegularUser;
 
         public ICollection<RefreshToken> RefreshTokens { get; set; }
             = new List<RefreshToken>();

@@ -118,48 +118,53 @@ public class TaskService : ITaskService
     public async Task<TaskResponseDto?> UpdateTaskAsync(
         Guid id,
         UpdateTaskDto dto,
-        Guid userId,
-        bool isAdmin,
         CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(dto);
+
         var task = await _taskRepository.GetByIdWithDetailsAsync(
             id,
             cancellationToken);
 
-        if (task == null)
+        if (task is null)
         {
             return null;
         }
 
         var currentUserId = _currentUserService.UserId;
 
-        if (currentUserId is null) 
+        if (currentUserId is null)
         {
             _logger.LogWarning(
-                "User {UserId} does not exist.",
-                currentUserId);
+                "Unauthenticated user attempted to update task {TaskId}.",
+                id);
 
-            throw new UnauthorizedAccessException("Unable to determine the current user.");
+            throw new UnauthorizedAccessException(
+                "Unable to determine the current user.");
         }
 
         if (_currentUserService.IsAdmin)
         {
+            // Admins can update all task properties.
             _mapper.Map(dto, task);
         }
         else
         {
-            if(task.UserId != currentUserId.Value)
+            // Regular users can only update their own task.
+            if (task.UserId != currentUserId.Value)
             {
                 _logger.LogWarning(
                     "User {UserId} attempted to update task {TaskId} without authorization.",
-                    currentUserId,
+                    currentUserId.Value,
                     id);
 
-                throw new UnauthorizedAccessException("You are not authorized to update this task.");
+                throw new UnauthorizedAccessException(
+                    "You are not authorized to update this task.");
             }
+
+            // Regular users can only update the status.
             task.Status = dto.Status;
         }
-
 
         task.UpdatedAt = DateTime.UtcNow;
 

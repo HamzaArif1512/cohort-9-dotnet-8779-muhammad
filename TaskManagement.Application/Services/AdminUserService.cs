@@ -91,18 +91,16 @@ public class AdminUserService : IAdminUserService
                 "A user with this email already exists.");
         }
 
-        var user = new User
-        {
-            Id = Guid.NewGuid(),
-            Name = dto.Name,
-            Email = dto.Email,
-            Role = UserRole.RegularUser,
-            CreatedAt = DateTime.UtcNow
-        };
+        var user = new User(
+            dto.Name,
+            dto.Email,
+            UserRole.RegularUser);
 
         user.PasswordHash = _passwordHasher.HashPassword(
             user,
             dto.Password);
+
+        user.SetPasswordHash(user.PasswordHash);
 
         await _userRepository.AddAsync(
             user);

@@ -80,8 +80,6 @@ public class TaskController : ControllerBase
         var task = await _taskService.UpdateTaskAsync(
             id,
             dto,
-            userId,
-            isAdmin,
             cancellationToken);
 
         if (task == null)

@@ -2,6 +2,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using TaskManagement.Application.DTOs.AdminUserDtos;
 using TaskManagement.Application.Interfaces.Repositories;
+using TaskManagement.Application.Exceptions;
 using TaskManagement.Domain.Entities;
 using TaskManagement.Domain.Enums;
 
@@ -116,6 +117,7 @@ public class UserRepository : GenericRepository<User, Guid>, IUserRepository
                 Title = t.Title,
                 Description = t.Description,
                 Status = t.Status,
+                Priority = t.Priority,
                 DueDate = t.DueDate,
                 CategoryId = t.CategoryId,
                 CategoryName = t.Category != null ? t.Category.Name : null

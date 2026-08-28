@@ -20,21 +20,15 @@ public class TaskRepositoryTests
 
     private static async Task SeedTasksAsync(ApplicationDbContext context)
     {
-        var user1 = new User
-        {
-            Id = Guid.NewGuid(),
-            Name = "Hamza",
-            Email = "hamza@test.com",
-            Role = UserRole.RegularUser
-        };
+        var user1 = new User(
+            "Hamza",
+            "hamza@test.com",
+            UserRole.RegularUser);
 
-        var user2 = new User
-        {
-            Id = Guid.NewGuid(),
-            Name = "Admin",
-            Email = "admin@test.com",
-            Role = UserRole.Admin
-        };
+        var user2 = new User(
+            "Admin",
+            "admin@test.com",
+            UserRole.Admin);
 
         var category = new Category
         {

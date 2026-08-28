@@ -41,11 +41,12 @@ public class ProfileServiceTests
         // Arrange
         var userId = Guid.NewGuid();
 
-        var user = new User
+        var user = new User(
+            "Hamza Arif",
+            "hamza@example.com",
+            UserRole.Admin)
         {
-            Id = userId,
-            Name = "Hamza Arif",
-            Email = "hamza@example.com"
+            Id = userId
         };
 
         var expectedProfile = new ProfileDto
@@ -85,11 +86,12 @@ public class ProfileServiceTests
         // Arrange
         var userId = Guid.NewGuid();
 
-        var user = new User
+        var user = new User(
+            "Hamza Arif",
+            "hamza@example.com",
+            UserRole.Admin)
         {
-            Id = userId,
-            Name = "Hamza Arif",
-            Email = "hamza@example.com"
+            Id = userId
         };
 
         var profile = new ProfileDto
@@ -184,11 +186,12 @@ public class ProfileServiceTests
         // Arrange
         var userId = Guid.NewGuid();
 
-        var user = new User
+        var user = new User(
+            "Hamza Arif",
+            "hamza@example.com",
+            UserRole.Admin)
         {
-            Id = userId,
-            Name = "Hamza Arif",
-            Email = "hamza@example.com"
+            Id = userId
         };
 
         var expectedProfile = new ProfileDto

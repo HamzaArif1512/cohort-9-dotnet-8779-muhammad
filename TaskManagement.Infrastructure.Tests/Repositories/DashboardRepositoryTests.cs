@@ -21,21 +21,15 @@ public class DashboardRepositoryTests
     private static async Task SeedDashboardDataAsync(
     ApplicationDbContext context)
     {
-        var user1 = new User
-        {
-            Id = Guid.NewGuid(),
-            Name = "Hamza",
-            Email = "hamza@test.com",
-            Role = UserRole.RegularUser
-        };
+        var user1 = new User(
+            "Hamza",
+            "hamza@test.com",
+            UserRole.RegularUser);
 
-        var user2 = new User
-        {
-            Id = Guid.NewGuid(),
-            Name = "Ahmed",
-            Email = "ahmed@test.com",
-            Role = UserRole.RegularUser
-        };
+        var user2 = new User(
+            "Ahmed",
+            "ahmed@test.com",
+            UserRole.RegularUser);
 
         var category = new Category
         {
