@@ -12,8 +12,16 @@ public interface ITaskService
     public Task<TaskResponseDto?> UpdateTaskAsync(
         Guid id,
         UpdateTaskDto dto,
-        Guid userId,
-        bool isAdmin,
         CancellationToken cancellationToken);
+
+    public Task<TaskResponseDto?> UpdateTaskStatusAsync(
+        Guid id,
+        UpdateTaskStatusDto dto,
+        CancellationToken cancellationToken);
+
+    public Task<IEnumerable<TaskResponseDto>> SearchTasksAsync(TaskSearchDto filters, CancellationToken cancellationToken);
+
     public Task<bool> DeleteTaskAsync(Guid id);
+
+
 }

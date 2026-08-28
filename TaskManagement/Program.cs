@@ -1,14 +1,17 @@
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using AutoMapper;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
+using TaskManagement.API;
 using TaskManagement.API.Extensions; //register middleware extension method
 using TaskManagement.Application;
+using TaskManagement.Application.Interfaces.Services;
 using TaskManagement.Application.Validators.UserValidators;
 using TaskManagement.Infrastructure;
 using TaskManagement.Infrastructure.Configurations;
@@ -21,6 +24,7 @@ namespace TaskManagement
     {
         public static void Main(string[] args)
         {
+            Console.WriteLine("========== PROGRAM STARTED ==========");
             var builder = WebApplication.CreateBuilder(args);
 
 
@@ -87,6 +91,10 @@ namespace TaskManagement
             builder.Services.AddFluentValidationAutoValidation();
             builder.Services.AddValidatorsFromAssemblyContaining<RegisterUserDtoValidator>();
 
+            //Task Management
+            builder.Services.AddHttpContextAccessor();
+            builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+
             //enpoints, controllers, swagger, and other services
             builder.Services
                 .AddPresentation(builder.Configuration)
@@ -99,10 +107,29 @@ namespace TaskManagement
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
 
+
+
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("Frontend", policy =>
+                {
+                    policy
+                        .WithOrigins("http://localhost:8443")
+                        .AllowAnyHeader()
+                        .AllowAnyMethod();
+                });
+            });
+
+
+
             var app = builder.Build();
 
 
-
+            //using (var scope = app.Services.CreateScope())
+            //{
+            //    var mapper = scope.ServiceProvider.GetRequiredService<IMapper>();
+            //    mapper.ConfigurationProvider.AssertConfigurationIsValid();
+            //}
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -122,9 +149,13 @@ namespace TaskManagement
 
             app.UseHttpsRedirection();
 
+            app.UseCors("Frontend");
+
             app.UseAuthentication();
 
             app.UseAuthorization();
+
+
 
 
             app.MapControllers();
@@ -154,9 +185,22 @@ namespace TaskManagement
             });
 
             //Confrmation message to indicate that the application is running
+            Console.WriteLine("========== BEFORE LOG ==========");
+
             Log.Information("TaskManagement API started.");
 
+            Console.WriteLine("========== AFTER LOG ==========");
+
+            foreach (var address in app.Urls)
+            {
+                Console.WriteLine($"API listening on: {address}");
+            }
+
+            Console.WriteLine("========== BEFORE APP.RUN ==========");
+
             app.Run();
+
+            Console.WriteLine("========== AFTER APP.RUN ==========");
         }
     }
 }

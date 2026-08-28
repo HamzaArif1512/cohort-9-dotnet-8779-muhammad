@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace TaskManagement.Application.DTOs.CategoryDtos;
 
-internal class CreateCategoryDto
+public class CreateCategoryDto
 {
+    public string Name { get; set; } = string.Empty;
 }

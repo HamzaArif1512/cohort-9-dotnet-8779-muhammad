@@ -31,8 +31,13 @@ public static class DependencyInjection
         services.AddScoped<ITaskRepository, TaskRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();
+        services.AddScoped<ICategoryService, CategoryService>();
+        services.AddScoped<IDashboardRepository, DashboardRepository>();
         services.AddScoped<ITaskService, TaskService>();
         services.AddScoped<ITokenService, TokenService>();
+        services.AddScoped<IDashboardService, DashboardService>();
+        services.AddScoped<IProfileService, ProfileService>();
+        services.AddScoped<IAdminUserService, AdminUserService>();
 
         return services;
     }
