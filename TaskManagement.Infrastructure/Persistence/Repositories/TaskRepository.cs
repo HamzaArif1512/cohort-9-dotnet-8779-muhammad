@@ -9,12 +9,11 @@ namespace TaskManagement.Infrastructure.Persistence.Repositories;
 public class TaskRepository : GenericRepository<TaskItem, Guid>, ITaskRepository
 {
 
-    private readonly ApplicationDbContext _context;
+
 
     public TaskRepository(ApplicationDbContext dbContext)
         : base(dbContext)
     {
-        _context = dbContext;
     }
 
     public async Task<TaskItem?> GetByIdWithDetailsAsync(

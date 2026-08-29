@@ -6,6 +6,6 @@ namespace TaskManagement.Application.Interfaces.Services;
 
 public interface ICurrentUserService
 {
-    Guid? UserId { get; }
-    bool IsAdmin { get; }
+    public Guid? UserId { get; }
+    public bool IsAdmin { get; }
 }
