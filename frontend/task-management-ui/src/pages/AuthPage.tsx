@@ -42,6 +42,21 @@ function uid() {
   return Math.random().toString(36).slice(2)
 }
 
+const PASSWORD_RULES = [
+  { key: "length", label: "At least 8 characters", test: (p: string) => p.length >= 8 },
+  { key: "upper", label: "Uppercase letter (A–Z)", test: (p: string) => /[A-Z]/.test(p) },
+  { key: "lower", label: "Lowercase letter (a–z)", test: (p: string) => /[a-z]/.test(p) },
+  { key: "number", label: "Number (0–9)", test: (p: string) => /[0-9]/.test(p) },
+  { key: "special", label: "Special character", test: (p: string) => /[^A-Za-z0-9]/.test(p) },
+]
+
+function validatePassword(p: string): string | null {
+  for (const rule of PASSWORD_RULES) {
+    if (!rule.test(p)) return `Password must include: ${rule.label.toLowerCase()}.`
+  }
+  return null
+}
+
 // ─── Spinner ─────────────────────────────────────────────────────────────────
 
 function Spinner() {
@@ -97,10 +112,10 @@ function ToastList({ toasts, onDismiss }: { toasts: ToastItem[]; onDismiss: (id:
 // ─── Field ───────────────────────────────────────────────────────────────────
 
 function Field({
-  label, id, type = "text", value, onChange, error, placeholder, disabled, autoComplete, showToggle,
+  label, id, type = "text", value, onChange, error, placeholder, disabled, autoComplete, showToggle, onFocus, onBlur,
 }: {
   label: string; id: string; type?: string; value: string; onChange: (v: string) => void
-  error?: string; placeholder?: string; disabled?: boolean; autoComplete?: string; showToggle?: boolean
+  error?: string; placeholder?: string; disabled?: boolean; autoComplete?: string; showToggle?: boolean; onFocus?: () => void; onBlur?: () => void
 }) {
   const [visible, setVisible] = useState(false)
   const canToggle = type === "password" && !!showToggle
@@ -114,6 +129,7 @@ function Field({
       <div className="relative">
         <input
           id={id} type={inputType} value={value} onChange={(e) => onChange(e.target.value)}
+          onFocus={onFocus} onBlur={onBlur}
           placeholder={placeholder} disabled={disabled} autoComplete={autoComplete}
           className={`h-10 w-full rounded-[8px] border px-3 text-sm text-[#111111] bg-white placeholder:text-[#c0c0c0] outline-none transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed ${canToggle ? "pr-10" : ""} ${error ? "border-[#c0392b] ring-2 ring-[#c0392b]/15" : "border-[#E5E5E5] focus:border-[#7F40E4] focus:ring-2 focus:ring-[#7F40E4]/15"}`}
           style={{ fontFamily: "'Jost', sans-serif" }}
@@ -151,6 +167,34 @@ function Field({
           {error}
         </p>
       )}
+    </div>
+  )
+}
+
+function PasswordChecklist({ value, focused }: { value: string; focused: boolean }) {
+  const showChecklist = focused || value.length > 0
+
+  if (!showChecklist) return null
+
+  return (
+    <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 pt-1">
+      {PASSWORD_RULES.map((rule) => {
+        const ok = rule.test(value)
+        return (
+          <div key={rule.key} className="flex items-center gap-1.5">
+            <svg viewBox="0 0 12 12" fill="currentColor" className="w-3 h-3 shrink-0" style={{ color: ok ? "#1a7f4b" : "#8A8A8A" }}>
+              {ok ? (
+                <path fillRule="evenodd" d="M10.293 2.293a1 1 0 011.414 1.414l-6 6a1 1 0 01-1.414 0l-3-3a1 1 0 011.414-1.414L5 7.586l5.293-5.293z" clipRule="evenodd" />
+              ) : (
+                <circle cx="6" cy="6" r="4" stroke="#8A8A8A" strokeWidth="1.5" fill="none" />
+              )}
+            </svg>
+            <span className="text-[11px]" style={{ fontFamily: "'Jost', sans-serif", color: ok ? "#1a7f4b" : "#8A8A8A" }}>
+              {rule.label}
+            </span>
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -219,6 +263,7 @@ function RegisterForm({ onSuccess }: { onSuccess: (msg: string, email: string) =
   const [errors, setErrors] = useState<FieldErrors>({})
   const [loading, setLoading] = useState(false)
   const [serverError, setServerError] = useState("")
+  const [passwordFocused, setPasswordFocused] = useState(false)
 
   function set(field: keyof RegisterForm, value: string) {
     setForm((f) => ({ ...f, [field]: value }))
@@ -233,7 +278,10 @@ function RegisterForm({ onSuccess }: { onSuccess: (msg: string, email: string) =
     if (!form.email.trim()) errs.email = "Email is required."
     else if (!isValidEmail(form.email)) errs.email = "Enter a valid email address."
     if (!form.password) errs.password = "Password is required."
-    else if (form.password.length < 8) errs.password = "Password must be at least 8 characters."
+    else {
+      const passwordError = validatePassword(form.password)
+      if (passwordError) errs.password = passwordError
+    }
     if (!form.confirmPassword) errs.confirmPassword = "Please confirm your password."
     else if (form.password !== form.confirmPassword) errs.confirmPassword = "Passwords do not match."
     return errs
@@ -265,7 +313,23 @@ function RegisterForm({ onSuccess }: { onSuccess: (msg: string, email: string) =
       )}
       <Field id="reg-fullname" label="Full Name" value={form.fullName} onChange={(v) => set("fullName", v)} error={errors.fullName} placeholder="Jane Smith" disabled={loading} autoComplete="name" />
       <Field id="reg-email" label="Email Address" type="email" value={form.email} onChange={(v) => set("email", v)} error={errors.email} placeholder="you@example.com" disabled={loading} autoComplete="email" />
-      <Field id="reg-password" label="Create Password" type="password" value={form.password} onChange={(v) => set("password", v)} error={errors.password} placeholder="Min. 8 characters" disabled={loading} autoComplete="new-password" showToggle />
+      <div className="flex flex-col gap-1.5">
+        <Field
+          id="reg-password"
+          label="Create Password"
+          type="password"
+          value={form.password}
+          onChange={(v) => set("password", v)}
+          error={errors.password}
+          placeholder="Min. 8 characters"
+          disabled={loading}
+          autoComplete="new-password"
+          showToggle
+          onFocus={() => setPasswordFocused(true)}
+          onBlur={() => setPasswordFocused(false)}
+        />
+        <PasswordChecklist value={form.password} focused={passwordFocused} />
+      </div>
       <Field id="reg-confirm" label="Confirm Password" type="password" value={form.confirmPassword} onChange={(v) => set("confirmPassword", v)} error={errors.confirmPassword} placeholder="Re-enter your password" disabled={loading} autoComplete="new-password" showToggle />
       <PrimaryButton loading={loading} loadingLabel="Creating account…" label="Create Account" />
     </form>
