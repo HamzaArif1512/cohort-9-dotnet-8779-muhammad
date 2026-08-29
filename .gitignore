@@ -10,7 +10,7 @@ logs/
 # Environment / secrets
 # ==============================
 .env
-.env.*
+.env*
 !.env.example
 
 # ==============================

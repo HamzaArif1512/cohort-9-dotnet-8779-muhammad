@@ -58,8 +58,24 @@ function formatRelative(iso: string): string {
   return `${d}d ago`
 }
 
+function isDueSoon(dueDate: string, status: TaskStatus): boolean {
+  if (status === "Completed") return false
+
+  const due = new Date(`${dueDate}T00:00:00`)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  return due.getTime() === today.getTime()
+}
+
 function isOverdue(dueDate: string, status: TaskStatus): boolean {
-  return status !== "Completed" && new Date(dueDate) < new Date()
+  if (status === "Completed") return false
+
+  const due = new Date(`${dueDate}T00:00:00`)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  return due.getTime() < today.getTime()
 }
 
 function countAdminActiveFilters(f: AdminTaskFilterState): number {
@@ -349,6 +365,7 @@ function AdminTaskTable({
           <tbody>
             {tasks.map((task, idx) => {
               const overdue = isOverdue(task.dueDate, task.status)
+              const dueSoon = !overdue && isDueSoon(task.dueDate, task.status)
               return (
                 <tr
                   key={task.id}
@@ -387,14 +404,14 @@ function AdminTaskTable({
                   <td className="px-4 py-3.5 whitespace-nowrap">
                     <span
                       className="text-[12px]"
-                      style={{ fontFamily: "'Jost', sans-serif", color: overdue ? C.error : C.textSecondary, fontWeight: overdue ? 600 : 400 }}
+                      style={{ fontFamily: "'Jost', sans-serif", color: overdue ? C.error : dueSoon ? C.warning : C.textSecondary, fontWeight: overdue || dueSoon ? 600 : 400 }}
                     >
-                      {overdue && (
+                      {(overdue || dueSoon) && (
                         <svg viewBox="0 0 12 12" fill="currentColor" className="w-3 h-3 inline mr-1 mb-0.5">
                           <path fillRule="evenodd" d="M6 1a5 5 0 100 10A5 5 0 006 1zM5.5 3.5a.5.5 0 011 0v3a.5.5 0 01-1 0v-3zm.5 5a.5.5 0 100-1 .5.5 0 000 1z" clipRule="evenodd" />
                         </svg>
                       )}
-                      {formatDate(task.dueDate)}
+                      {overdue ? "Overdue" : dueSoon ? "Due soon" : "Due"} · {formatDate(task.dueDate)}
                     </span>
                   </td>
                   <td className="px-4 py-3.5 whitespace-nowrap">
@@ -447,6 +464,7 @@ function AdminTaskCard({
   onDelete: (t: Task) => void
 }) {
   const overdue = isOverdue(task.dueDate, task.status)
+  const dueSoon = !overdue && isDueSoon(task.dueDate, task.status)
   return (
     <div
       onClick={() => onView(task)}
@@ -478,9 +496,12 @@ function AdminTaskCard({
         <CategoryTag category={task.categoryName} />
         <span
           className="text-[11px]"
-          style={{ fontFamily: "'Jost', sans-serif", color: overdue ? C.error : C.textMuted, fontWeight: overdue ? 600 : 400 }}
+          style={{ fontFamily: "'Jost', sans-serif", color: overdue ? C.error : dueSoon ? C.warning : C.textMuted, fontWeight: overdue || dueSoon ? 600 : 400 }}
         >
-          {overdue ? "⚠ Overdue " : "Due "}{formatDate(task.dueDate)}
+          {overdue && "⚠ Overdue "}
+          {dueSoon && "⚠ Due soon "}
+          {!overdue && !dueSoon && "Due "}
+          {formatDate(task.dueDate)}
         </span>
       </div>
 
@@ -1401,13 +1422,14 @@ function EditTaskModal({
 
 function TaskDetailModal({ task, onClose, onEdit }: { task: Task; onClose: () => void; onEdit: (t: Task) => void }) {
   const overdue = isOverdue(task.dueDate, task.status)
+  const dueSoon = !overdue && isDueSoon(task.dueDate, task.status)
 
   const fields: { label: string; value: React.ReactNode }[] = [
     { label: "Assignee",    value: <AssigneeCell name={task.assigneeName} /> },
     { label: "Status",      value: <StatusBadge status={task.status} /> },
     { label: "Priority",    value: <PriorityBadge priority={task.priority} /> },
     { label: "Category",    value: <CategoryTag category={task.categoryName } /> },
-    { label: "Due Date",    value: <span className="text-[13px]" style={{ fontFamily: "'Jost', sans-serif", color: overdue ? C.error : C.textSecondary, fontWeight: overdue ? 600 : 400 }}>{overdue ? "⚠ Overdue — " : ""}{formatDate(task.dueDate)}</span> },
+    { label: "Due Date",    value: <span className="text-[13px]" style={{ fontFamily: "'Jost', sans-serif", color: overdue ? C.error : dueSoon ? C.warning : C.textSecondary, fontWeight: overdue || dueSoon ? 600 : 400 }}>{overdue ? "⚠ Overdue — " : dueSoon ? "⚠ Due Soon — " : ""}{formatDate(task.dueDate)}</span> },
     { label: "Last Updated",value: <span className="text-[13px]" style={{ fontFamily: "'Jost', sans-serif", color: C.textSecondary }}>{formatRelative(task.updatedAt)}</span> },
     { label: "Created",     value: <span className="text-[13px]" style={{ fontFamily: "'Jost', sans-serif", color: C.textSecondary }}>{formatDate(task.createdAt)}</span> },
   ]

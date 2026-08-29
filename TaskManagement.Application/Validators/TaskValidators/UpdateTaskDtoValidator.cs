@@ -8,6 +8,12 @@ public class UpdateTaskDtoValidator : AbstractValidator<UpdateTaskDto>
 {
     public UpdateTaskDtoValidator()
     {
+
+
+        var today = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(
+        DateTime.UtcNow,
+        "Pakistan Standard Time").Date;
+
         RuleFor(x => x.Title)
             .NotEmpty()
             .MaximumLength(100);
@@ -32,6 +38,7 @@ public class UpdateTaskDtoValidator : AbstractValidator<UpdateTaskDto>
             .NotEmpty();
 
         RuleFor(x => x.DueDate)
-            .GreaterThan(DateTime.UtcNow);
+            .Must(dueDate => !dueDate.HasValue || dueDate.Value.Date >= today)
+            .WithMessage("'Due Date' cannot be earlier than today.");
     }
 }

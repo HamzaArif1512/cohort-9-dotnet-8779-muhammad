@@ -9,6 +9,11 @@ public class CreateTaskDtoValidator : AbstractValidator<CreateTaskDto>
 {
     public CreateTaskDtoValidator()
     {
+
+        var today = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(
+        DateTime.UtcNow,
+        "Pakistan Standard Time").Date;
+
         RuleFor(x => x.Title)
             .NotEmpty()
             .WithMessage("Title is required.")
@@ -33,7 +38,7 @@ public class CreateTaskDtoValidator : AbstractValidator<CreateTaskDto>
             .WithMessage("Assignee is required.");
 
         RuleFor(x => x.DueDate)
-            .GreaterThan(DateTime.UtcNow)
-            .WithMessage("Due date must be in the future.");
+            .Must(dueDate => !dueDate.HasValue || dueDate.Value.Date >= today)
+            .WithMessage("'Due Date' cannot be earlier than today.");
     }
 }

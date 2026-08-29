@@ -1,5 +1,6 @@
 import apiClient from "./apiClient"
 import type { Task, TaskStatus, TaskPriority } from "@/types"
+import axios from "axios"
 
 interface TaskResponseDto {
   id: string
@@ -166,12 +167,34 @@ export async function updateAdminTask(
   id: string,
   payload: UpdateTaskPayload,
 ): Promise<Task> {
-  const response = await apiClient.put<TaskResponseDto>(
-    `/Task/${id}`,
-    payload,
-  )
+  try {
+    const response = await apiClient.put<TaskResponseDto>(
+      `/Task/${id}`,
+      payload,
+    )
 
-  return mapTaskResponse(response.data)
+    return mapTaskResponse(response.data)
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      const errors = error.response?.data?.errors
+
+      if (errors) {
+        const firstError = Object.values(errors)[0]
+
+        if (Array.isArray(firstError) && firstError.length > 0) {
+          throw new Error(firstError[0])
+        }
+      }
+
+      const message = error.response?.data?.message
+
+      if (message) {
+        throw new Error(message)
+      }
+    }
+
+    throw new Error("Failed to update task. Please try again.")
+  }
 }
 
 export async function deleteAdminTask(

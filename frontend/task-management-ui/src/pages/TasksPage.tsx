@@ -47,8 +47,24 @@ function formatRelative(iso: string): string {
   return `${d}d ago`
 }
 
+function isDueSoon(dueDate: string, status: TaskStatus): boolean {
+  if (status === "Completed") return false
+
+  const due = new Date(`${dueDate}T00:00:00`)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  return due.getTime() === today.getTime()
+}
+
 function isOverdue(dueDate: string, status: TaskStatus): boolean {
-  return status !== "Completed" && new Date(dueDate) < new Date()
+  if (status === "Completed") return false
+
+  const due = new Date(`${dueDate}T00:00:00`)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  return due.getTime() < today.getTime()
 }
 
 function countActiveFilters(f: TaskFilterState): number {
@@ -294,6 +310,7 @@ function TaskTable({
           <tbody>
             {tasks.map((task, idx) => {
               const overdue = isOverdue(task.dueDate, task.status)
+              const dueSoon = !overdue && isDueSoon(task.dueDate, task.status)
               return (
                 <tr
                   key={task.id}
@@ -337,14 +354,14 @@ function TaskTable({
                   <td className="px-4 py-3.5 whitespace-nowrap">
                     <span
                       className="text-[12px]"
-                      style={{ fontFamily: "'Jost', sans-serif", color: overdue ? C.error : C.textSecondary, fontWeight: overdue ? 600 : 400 }}
+                      style={{ fontFamily: "'Jost', sans-serif", color: overdue ? C.error : dueSoon ? C.warning : C.textSecondary, fontWeight: overdue || dueSoon ? 600 : 400 }}
                     >
-                      {overdue && (
+                      {(overdue || dueSoon) && (
                         <svg viewBox="0 0 12 12" fill="currentColor" className="w-3 h-3 inline mr-1 mb-0.5">
                           <path fillRule="evenodd" d="M6 1a5 5 0 100 10A5 5 0 006 1zM5.5 3.5a.5.5 0 011 0v3a.5.5 0 01-1 0v-3zm.5 5a.5.5 0 100-1 .5.5 0 000 1z" clipRule="evenodd" />
                         </svg>
                       )}
-                      {formatDate(task.dueDate)}
+                      {overdue ? "Overdue" : dueSoon ? "Due soon" : "Due"} · {formatDate(task.dueDate)}
                     </span>
                   </td>
                   {/* Updated */}
@@ -392,6 +409,7 @@ function TaskCard({
   onStatusUpdate: (id: string, status: TaskStatus) => Promise<void>
 }) {
   const overdue = isOverdue(task.dueDate, task.status)
+  const dueSoon = !overdue && isDueSoon(task.dueDate, task.status)
   return (
     <div
       onClick={() => onClick(task)}
@@ -408,9 +426,12 @@ function TaskCard({
         <PriorityBadge priority={task.priority} />
         <span
           className="text-[11px]"
-          style={{ fontFamily: "'Jost', sans-serif", color: overdue ? C.error : C.textMuted, fontWeight: overdue ? 600 : 400 }}
+          style={{ fontFamily: "'Jost', sans-serif", color: overdue ? C.error : dueSoon ? C.warning : C.textMuted, fontWeight: overdue || dueSoon ? 600 : 400 }}
         >
-          {overdue && "⚠ "}Due {formatDate(task.dueDate)}
+          {overdue && "⚠ Overdue "}
+          {dueSoon && "⚠ Due soon "}
+          {!overdue && !dueSoon && "Due "}
+          {formatDate(task.dueDate)}
         </span>
       </div>
 
@@ -797,6 +818,7 @@ function TaskDetailModal({
   if (!task) return null
 
   const overdue = isOverdue(task.dueDate, task.status)
+  const dueSoon = !overdue && isDueSoon(task.dueDate, task.status)
 
   return (
     <div className="fixed inset-0 z-[990] flex items-center justify-center p-4" aria-modal="true" role="dialog" aria-label={task.title}>
@@ -859,14 +881,14 @@ function TaskDetailModal({
               </p>
               <p
                 className="text-[13px] font-medium flex items-center gap-1"
-                style={{ fontFamily: "'Jost', sans-serif", color: overdue ? C.error : C.textSecondary }}
+                style={{ fontFamily: "'Jost', sans-serif", color: overdue ? C.error : dueSoon ? C.warning : C.textSecondary }}
               >
-                {overdue && (
-                  <svg viewBox="0 0 16 16" fill="currentColor" className="w-3.5 h-3.5 shrink-0" style={{ color: C.error }}>
+                {(overdue || dueSoon) && (
+                  <svg viewBox="0 0 16 16" fill="currentColor" className="w-3.5 h-3.5 shrink-0" style={{ color: overdue ? C.error : C.warning }}>
                     <path fillRule="evenodd" d="M8 1a7 7 0 100 14A7 7 0 008 1zM7.25 4.5a.75.75 0 011.5 0v4a.75.75 0 01-1.5 0v-4zm.75 7a.75.75 0 100-1.5.75.75 0 000 1.5z" clipRule="evenodd" />
                   </svg>
                 )}
-                {overdue ? "Overdue · " : ""}{new Date(task.dueDate).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+                {overdue ? "Overdue · " : dueSoon ? "Due Soon · " : ""}{new Date(task.dueDate).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
               </p>
             </div>
 
